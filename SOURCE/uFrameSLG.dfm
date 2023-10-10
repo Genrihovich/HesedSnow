@@ -1,17 +1,18 @@
 inherited frmSLG: TfrmSLG
-  Width = 895
+  Width = 1019
   Height = 556
-  ExplicitWidth = 895
+  ExplicitWidth = 1019
   ExplicitHeight = 556
   object sPanel1: TsPanel [0]
     Left = 0
     Top = 0
-    Width = 895
+    Width = 1019
     Height = 41
     Align = alTop
     TabOrder = 0
+    ExplicitWidth = 895
     DesignSize = (
-      895
+      1019
       41)
     object SpeedButton2: TSpeedButton
       Left = 8
@@ -22,24 +23,26 @@ inherited frmSLG: TfrmSLG
       OnClick = SpeedButton2Click
     end
     object SpeedButton1: TSpeedButton
-      Left = 734
+      Left = 858
       Top = 8
       Width = 153
       Height = 27
       Anchors = [akTop, akRight]
       Caption = #1048#1084#1087#1086#1088#1090' '#1089#1087#1088#1072#1074#1086#1095#1085#1080#1082#1072' '#1057#1051#1043
       OnClick = SpeedButton1Click
+      ExplicitLeft = 734
     end
   end
   object sPanel2: TsPanel [1]
     Left = 0
     Top = 41
-    Width = 895
+    Width = 1019
     Height = 474
     Align = alClient
     TabOrder = 1
+    ExplicitWidth = 895
     object Splitter1: TSplitter
-      Left = 653
+      Left = 777
       Top = 1
       Height = 472
       Align = alRight
@@ -100,13 +103,14 @@ inherited frmSLG: TfrmSLG
       end
     end
     object Panel2: TPanel
-      Left = 656
+      Left = 780
       Top = 1
       Width = 238
       Height = 472
       Align = alRight
       Caption = 'Panel1'
       TabOrder = 1
+      ExplicitLeft = 656
       object sEdit2: TsEdit
         Left = 1
         Top = 1
@@ -148,37 +152,40 @@ inherited frmSLG: TfrmSLG
     object Panel3: TPanel
       Left = 244
       Top = 1
-      Width = 409
+      Width = 533
       Height = 472
       Align = alClient
       Caption = 'Panel3'
       TabOrder = 2
+      ExplicitWidth = 409
       object Panel4: TPanel
         Left = 1
         Top = 1
-        Width = 407
+        Width = 531
         Height = 29
         Align = alTop
         TabOrder = 0
+        ExplicitWidth = 407
         DesignSize = (
-          407
+          531
           29)
         object Button3: TButton
           Left = 2
-          Top = 4
+          Top = 2
           Width = 97
           Height = 25
           Action = btnDelStroka
           TabOrder = 0
         end
         object Button4: TButton
-          Left = 304
+          Left = 428
           Top = 2
           Width = 101
           Height = 25
           Action = btnClearList
           Anchors = [akTop, akRight]
           TabOrder = 1
+          ExplicitLeft = 304
         end
         object Button5: TButton
           Left = 103
@@ -200,7 +207,7 @@ inherited frmSLG: TfrmSLG
       object StringGrid: TJvStringGrid
         Left = 1
         Top = 30
-        Width = 407
+        Width = 531
         Height = 441
         Align = alClient
         ColCount = 9
@@ -216,18 +223,20 @@ inherited frmSLG: TfrmSLG
         FixedFont.Height = -11
         FixedFont.Name = 'Tahoma'
         FixedFont.Style = []
+        ExplicitWidth = 407
       end
     end
   end
   object sPanel3: TsPanel [2]
     Left = 0
     Top = 515
-    Width = 895
+    Width = 1019
     Height = 41
     Align = alBottom
     TabOrder = 2
+    ExplicitWidth = 895
     DesignSize = (
-      895
+      1019
       41)
     object lCount: TLabel
       Left = 248
@@ -244,13 +253,14 @@ inherited frmSLG: TfrmSLG
       Caption = 'lSum'
     end
     object Button2: TButton
-      Left = 697
+      Left = 821
       Top = 5
       Width = 193
       Height = 31
       Action = btnExportExcel
       Anchors = [akRight, akBottom]
       TabOrder = 0
+      ExplicitLeft = 697
     end
   end
   inherited sFrameAdapter1: TsFrameAdapter

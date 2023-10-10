@@ -73,7 +73,7 @@ type
   public
     { Public declarations }
     procedure AfterCreation; override;
-   //  procedure AutoStringGridWidth; // подгонка ширині колонок
+    // procedure AutoStringGridWidth; // подгонка ширині колонок
 
   end;
 
@@ -553,96 +553,111 @@ var
   CollectionNameTable: TDictionary<string, Integer>;
 begin
   inherited;
+  try
+    with myForm, DM do
+    begin
 
-  with myForm, DM do
-  begin
-
-    OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
-    if not OpenDialog.Execute then
-      Exit;
-    // проверка на инсталл и запуск Excel
-    if uMyExcel.RunExcel(false, false) = true then
-      // открываем книгу Excel
-      if uMyExcel.OpenWorkBook(OpenDialog.FileName, false) then
-      begin
-        ProgressBar.Visible := true;
-        MyExcel.ActiveWorkBook.Sheets[1];
-
-        // последняя заполненная колонка
-        col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
-
-        // ------------ пробежимся расставим индексы названий столбцов -------------
-
-        CollectionNameTable := TDictionary<string, Integer>.Create();
-        for z := 1 to col do
+      OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
+      if not OpenDialog.Execute then
+        Exit;
+      // проверка на инсталл и запуск Excel
+      if uMyExcel.RunExcel(false, false) = true then
+        // открываем книгу Excel
+        if uMyExcel.OpenWorkBook(OpenDialog.FileName, false) then
         begin
-          if not CollectionNameTable.ContainsKey(MyExcel.Cells[1, z].value) then
-            CollectionNameTable.Add(MyExcel.Cells[1, z].value, z)
-          else
-            CollectionNameTable.Add(MyExcel.Cells[1, z].value + z.ToString, z);
+          ProgressBar.Visible := true;
+          MyExcel.ActiveWorkBook.Sheets[1];
+
+          // последняя заполненная колонка
+          col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
+
+          // ------------ пробежимся расставим индексы названий столбцов -------------
+
+          CollectionNameTable := TDictionary<string, Integer>.Create();
+          for z := 1 to col do
+          begin
+            if not CollectionNameTable.ContainsKey(MyExcel.Cells[1, z].value)
+            then
+              CollectionNameTable.Add(MyExcel.Cells[1, z].value, z)
+            else
+              CollectionNameTable.Add(MyExcel.Cells[1, z].value +
+                z.ToString, z);
+          end;
+          // ================= конец пробега для  СТОЛБЦОВ ======================
+
+          m := 2; // начинаем считывание со 2-й строки, оставляя заголовок колонки
+          // последняя заполненная строка
+          n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
+          n := n + 1;
+
+          ProgressBar.Min := 0;
+          ProgressBar.Max := n;
+          ProgressBar.Position := 1;
+
+          // очищаем таблицу средств личной гигиены
+          CleanOutTable('Uslugy');
+          tUslugy.Open;
+
+          while m <> n do // цикл внешний по записям EXCEL
+          begin
+            tUslugy.Insert;
+
+            tUslugy.FieldByName('RITM').AsString :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['Номер'].ToString)].value;
+
+            tUslugy.FieldByName('JDCID').AsString :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['JDC ID'].ToString)].value;
+
+            tUslugy.FieldByName('FIO').AsString :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['Клиент'].ToString)].value;
+            // [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value;
+
+            tUslugy.FieldByName('SABA').AsCurrency :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['Стоимость услуги']
+              .ToString)].value;
+
+            tUslugy.FieldByName('City').AsString :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['Город'].ToString)].value;
+
+            tUslugy.FieldByName('Number').AsString :=
+              MyExcel.Cells
+              [m, StrtoInt(CollectionNameTable.Items['Количество']
+              .ToString)].value;
+
+            tUslugy.Post;
+            Inc(m);
+            // Application.ProcessMessages;
+            Sleep(25);
+            ProgressBar.Position := m;
+          end;
+
         end;
-        // ================= конец пробега для  СТОЛБЦОВ ======================
 
-        m := 2; // начинаем считывание со 2-й строки, оставляя заголовок колонки
-        // последняя заполненная строка
-        n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
-        n := n + 1;
+      MyExcel.Application.DisplayAlerts := false;
+      StopExcel;
+      CollectionNameTable.Clear;
+      CollectionNameTable.Free;
+      DM.tUslugy.Active := false;
+      myForm.ProgressBar.Visible := false;
+      DM.qUslugy.Active := false;
+      DM.qUslugy.Active := true;
+    end;
 
-        ProgressBar.Min := 0;
-        ProgressBar.Max := n;
-        ProgressBar.Position := 1;
+  except
+    on E: EListError do
+    begin
+     StopExcel;
+           CollectionNameTable.Clear;
+      CollectionNameTable.Free;
+     myForm.ProgressBar.Visible := false;
+     ShowMessage('Не вірний формат файлу ' + e.ToString);
+    end;
 
-        // очищаем таблицу средств личной гигиены
-        CleanOutTable('Uslugy');
-        tUslugy.Open;
-
-        while m <> n do // цикл внешний по записям EXCEL
-        begin
-          tUslugy.Insert;
-
-          tUslugy.FieldByName('RITM').AsString :=
-            MyExcel.Cells
-            [m, StrtoInt(CollectionNameTable.Items['Номер'].ToString)].value;
-
-          tUslugy.FieldByName('JDCID').AsString :=
-            MyExcel.Cells
-            [m, StrtoInt(CollectionNameTable.Items['JDC ID'].ToString)].value;
-
-          tUslugy.FieldByName('FIO').AsString :=
-            MyExcel.Cells
-            [m, StrtoInt(CollectionNameTable.Items['Клиент'].ToString)].value;
-          // [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value;
-
-          tUslugy.FieldByName('SABA').AsCurrency :=
-            MyExcel.Cells
-            [m, StrtoInt(CollectionNameTable.Items['Стоимость услуги']
-            .ToString)].value;
-
-          tUslugy.FieldByName('City').AsString :=
-            MyExcel.Cells
-            [m, StrtoInt(CollectionNameTable.Items['Город'].ToString)].value;
-
-          tUslugy.FieldByName('Number').AsString :=
-            MyExcel.Cells[m, StrtoInt(CollectionNameTable.Items['Количество']
-            .ToString)].value;
-
-          tUslugy.Post;
-          Inc(m);
-          // Application.ProcessMessages;
-          Sleep(25);
-          ProgressBar.Position := m;
-        end;
-
-      end;
-
-    MyExcel.Application.DisplayAlerts := false;
-    StopExcel;
-    CollectionNameTable.Clear;
-    CollectionNameTable.Free;
-    DM.tUslugy.Active := false;
-    myForm.ProgressBar.Visible := false;
-    DM.qUslugy.Active := false;
-    DM.qUslugy.Active := true;
   end;
 
 end;
@@ -710,8 +725,7 @@ begin // после перетаскивания
     // конвертировать координаты мыши.
     StringGrid.MouseToCell(X, Y, DestCol, DestRow);
 
-    ActiveSourceRow := DestRow;  // запомним позицию строки активной
-
+    ActiveSourceRow := DestRow; // запомним позицию строки активной
 
     // Переместить содержимое из источника в место назначения
     if Source = StringGrid then // ---- СЕРЕДИНА стринггрид ---------
@@ -727,15 +741,15 @@ begin // после перетаскивания
       if (PrevSourceRow = 0) or (PrevSourceRow = DestRow) then
       // первый раз
       begin
-         PrevSourceRow := ActiveSourceRow; // запомним позицию строки активной
+        PrevSourceRow := ActiveSourceRow; // запомним позицию строки активной
       end
       else // если старая позиция не равна текущей, то перемещаем старую в конец списка
       begin
         RemoveRowStringGrid(PrevSourceRow);
-          if ActiveSourceRow > PrevSourceRow then
-           PrevSourceRow := ActiveSourceRow - 1
-          else
-            PrevSourceRow := ActiveSourceRow;
+        if ActiveSourceRow > PrevSourceRow then
+          PrevSourceRow := ActiveSourceRow - 1
+        else
+          PrevSourceRow := ActiveSourceRow;
       end;
     end;
 
@@ -757,7 +771,6 @@ begin // после перетаскивания
       lCount.Caption := IntToStr(StrtoInt(lCount.Caption) + 1);
     end;
 
-
     if Source = MyDBGrid2 then // ---- СПРАВА грид -------------------------
     begin
       if StringGrid.RowCount > 1 then
@@ -773,7 +786,7 @@ begin // после перетаскивания
         Price_inch := MyDBGrid2.DataSource.DataSet.FieldByName('Price_inch')
           .AsCurrency;
 
-       colvo := StrtoInt(InputBox(izdelie, 'Введите кол-во', ''));
+        colvo := StrtoInt(InputBox(izdelie, 'Введите кол-во', ''));
 
         StringGrid.Cells[5, DestRow] :=
           ((colvo / upakovka) * Price_inch).ToString;
@@ -792,15 +805,15 @@ begin // после перетаскивания
         if (PrevSourceRow = 0) or (PrevSourceRow = DestRow) then
         // первый раз
         begin
-         PrevSourceRow := ActiveSourceRow; // запомним позицию строки активной
+          PrevSourceRow := ActiveSourceRow; // запомним позицию строки активной
         end
         else // если старая позиция не равна текущей, то перемещаем старую в конец списка
         begin
           RemoveRowStringGrid(PrevSourceRow);
           if ActiveSourceRow > PrevSourceRow then
-          PrevSourceRow := ActiveSourceRow - 1
+            PrevSourceRow := ActiveSourceRow - 1
           else
-          PrevSourceRow := ActiveSourceRow;
+            PrevSourceRow := ActiveSourceRow;
         end;
       end;
     end;
