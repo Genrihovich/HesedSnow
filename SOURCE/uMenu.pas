@@ -19,6 +19,7 @@ type
     btnImportBD: TsBitBtn;
     btnZvitBank: TsBitBtn;
     btnDohod: TsBitBtn;
+    btnAnalitik: TsBitBtn;
     procedure btnVidomistClick(Sender: TObject);
     procedure btnSLGClick(Sender: TObject);
     procedure btnNalogyClick(Sender: TObject);
@@ -27,6 +28,7 @@ type
     procedure btnImportBDClick(Sender: TObject);
     procedure btnZvitBankClick(Sender: TObject);
     procedure btnDohodClick(Sender: TObject);
+    procedure btnAnalitikClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -38,7 +40,12 @@ implementation
 {$R *.dfm}
 
 uses uFrameVidomist, uMainForm, uFrameSLG, uFrameNalogy, uFrameDavayPodkl,
-  uFrameUtils, uFrameImportBD, uFrameZvitBank, uDohod;
+  uFrameUtils, uFrameImportBD, uFrameZvitBank, uDohod, uFrameAnalitic;
+
+procedure TfrmMenu.btnAnalitikClick(Sender: TObject);
+begin
+myForm.CreateNewFrame(TfrmAnalitic, Sender);
+end;
 
 procedure TfrmMenu.btnDavayPodklClick(Sender: TObject);
 begin

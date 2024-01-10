@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Data.DB, Data.Win.ADODB, DBAccess, Uni,
-  UniProvider, MySQLUniProvider, MemDS;
+  UniProvider, MySQLUniProvider, MemDS, Vcl.Dialogs;
 
   { System.Actions,
   Vcl.ActnList, IDETheme.ActnCtrls, Vcl.ActnMan;}
@@ -57,6 +57,13 @@ type
     qQslgPrice_inch: TBCDField;
     qQslgupakovka: TIntegerField;
     qQslgKategorya: TWideStringField;
+    tUchastniky: TADOTable;
+    qUchastniky: TADOQuery;
+    dsUchastniky: TDataSource;
+    OpenDialog: TOpenDialog;
+    tHousehold: TADOTable;
+    tAdditData: TADOTable;
+    tVibivshie: TADOTable;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }

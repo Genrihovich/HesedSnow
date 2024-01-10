@@ -70,6 +70,10 @@ function FormatCurrentValue(s: String): String;
 // убрать лишние символы из цыфровой строки
 function RemoveNonDigits(const s: string): string;
 
+// загнать данные с ексел€ в базу данных
+function ExportExcelToBDTable(tabl: string; cleantabl: boolean;
+  MyTable: TADOTable; myFields: TStrings): boolean;
+
 implementation
 
 uses uDataModul, Registry, uFrameVidomist, uBDlogic, uMainForm, uMyExcel;
@@ -721,13 +725,14 @@ begin
   inputString := Copy(s, onPos + 5, s.Length);
   modifiedString := RemoveNonDigits(inputString);
 
- if modifiedString.Length >= 2 then
- begin
+  if modifiedString.Length >= 2 then
+  begin
     lastDigitIndex := Length(modifiedString) - 2;
 
     Result := Copy(modifiedString, 1, lastDigitIndex) + '.' +
-              Copy(modifiedString, lastDigitIndex + 1, Length(modifiedString) - lastDigitIndex);
- end;
+      Copy(modifiedString, lastDigitIndex + 1, Length(modifiedString) -
+      lastDigitIndex);
+  end;
 
 end;
 
@@ -740,6 +745,114 @@ begin
   for i := 1 to Length(s) do
     if IsDigit(s[i]) then
       Result := Result + s[i];
+end;
+
+// загнать данные с ексел€ в базу данных
+function ExportExcelToBDTable(tabl: string; cleantabl: boolean;
+  MyTable: TADOTable; myFields: TStrings): boolean;
+var
+  CollectionNameTable: TDictionary<string, Integer>;
+  i, z, col, m, n: Integer;
+  s, E: string;
+begin
+  Result := False;
+
+  try
+
+    with myForm, DM do
+    begin
+      OpenDialog.Filter := '‘айлы MS Excel|*.xls;*.xlsx|';
+      if not OpenDialog.Execute then
+        Exit;
+      // проверка на инсталл и запуск Excel
+      if uMyExcel.RunExcel(False, False) = True then
+        // открываем книгу Excel
+        if uMyExcel.OpenWorkBook(OpenDialog.FileName, False) then
+        begin
+          ProgressBar.Visible := True;
+          MyExcel.ActiveWorkBook.Sheets[1];
+
+          // последн€€ заполненна€ колонка
+          col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
+
+          // ---------- пробежимс€ расставим индексы названий столбцов -----------
+
+          CollectionNameTable := TDictionary<string, Integer>.Create();
+          for z := 1 to col do
+          begin
+            if not CollectionNameTable.ContainsKey(MyExcel.Cells[1, z].value)
+            then
+              CollectionNameTable.Add(StringReplace(MyExcel.Cells[1, z].value, '.', '', [rfReplaceAll]), z)
+            else
+              CollectionNameTable.Add(MyExcel.Cells[1, z].value +
+                z.ToString, z);
+          end;
+          // ================= конец пробега дл€  —“ќЋЅ÷ќ¬ ======================
+
+          m := 2; // начинаем считывание со 2-й строки, оставл€€ заголовок колонки
+          // последн€€ заполненна€ строка
+          n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
+          n := n + 1;
+
+          ProgressBar.Min := 0;
+          ProgressBar.Max := n;
+          ProgressBar.Position := 1;
+
+          // очищаем таблицу если надо
+          if cleantabl = True then
+            CleanOutTable(tabl);
+
+          MyTable.Open;
+          while m <> n do // цикл внешний по запис€м EXCEL
+          begin
+            MyTable.Insert;
+
+            for i := 0 to myFields.Count - 1 do
+            begin
+              s := myFields[i];
+              e := MyExcel.Cells
+                [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                .ToString)].value;
+
+              MyTable.FieldByName(myFields[i]).AsString :=
+                MyExcel.Cells
+                [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                .ToString)].value;
+            end;
+
+            MyTable.Post;
+            Inc(m);
+            // Application.ProcessMessages;
+            Sleep(25);
+            ProgressBar.Position := m;
+          end;
+
+          Result := True;
+
+        end;
+
+      MyExcel.Application.DisplayAlerts := False;
+      StopExcel;
+      CollectionNameTable.Clear;
+      CollectionNameTable.Free;
+      MyTable.Active := False;
+      myForm.ProgressBar.Visible := False;
+      // DM.qUslugy.Active := false;
+      // DM.qUslugy.Active := true;
+    end;
+  except
+    on E: EListError do
+    begin
+      // CleanOutTable('TemaDavayPodkl'); // обнул€ем таблицу
+      // DM.tTemaDavayPodkl.Active := false;
+      ShowMessage('Ќе в≥рний формат файлу, нема необх≥дних пол≥в');
+      MyExcel.Application.DisplayAlerts := False;
+      StopExcel;
+      CollectionNameTable.Clear;
+      CollectionNameTable.Free;
+      myForm.ProgressBar.Visible := False;
+    end;
+  end;
 end;
 
 end.

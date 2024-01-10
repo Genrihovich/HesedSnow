@@ -2,7 +2,7 @@ object frmMenu: TfrmMenu
   Left = 0
   Top = 0
   Width = 197
-  Height = 250
+  Height = 282
   TabOrder = 0
   TabStop = True
   object btnSLG: TsBitBtn
@@ -101,8 +101,19 @@ object frmMenu: TfrmMenu
     Caption = #1057#1087#1088#1072#1074#1082#1080' '#1086' '#1076#1086#1093#1086#1076#1072#1093
     TabOrder = 7
     OnClick = btnDohodClick
-    ExplicitTop = 217
-    ExplicitWidth = 197
+  end
+  object btnAnalitik: TsBitBtn
+    AlignWithMargins = True
+    Left = 3
+    Top = 251
+    Width = 191
+    Height = 25
+    Align = alTop
+    Caption = #1040#1085#1072#1083#1110#1090#1080#1082#1072' '#1079#1072' '#1088#1110#1082
+    TabOrder = 8
+    OnClick = btnAnalitikClick
+    ExplicitLeft = 6
+    ExplicitTop = 228
   end
   object sFrameAdapter1: TsFrameAdapter
     Left = 160

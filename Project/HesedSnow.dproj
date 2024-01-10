@@ -88,7 +88,7 @@
         <DCC_DcuOutput>..\DCU</DCC_DcuOutput>
         <DCC_ExeOutput>..\BIN\$(Platform)\$(Config)</DCC_ExeOutput>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <Icon_MainIcon>HesedSnow_Icon2.ico</Icon_MainIcon>
+        <Icon_MainIcon>HesedSnow_Icon1.ico</Icon_MainIcon>
         <UWP_DelphiLogo44>..\Image\ptica.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>..\Image\ptica.png</UWP_DelphiLogo150>
     </PropertyGroup>
@@ -178,6 +178,11 @@
         </DCCReference>
         <DCCReference Include="..\SOURCE\pdfium\uPdfiumDll.pas"/>
         <DCCReference Include="..\SOURCE\pdfium\uPdfiumIntf.pas"/>
+        <DCCReference Include="..\SOURCE\uFrameAnalitic.pas">
+            <Form>frmAnalitic</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -204,16 +209,16 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="..\BIN\Win32\Debug\HesedSnow.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>HesedSnow.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="..\Image\ptica.png" Configuration="Debug" Class="UWP_DelphiLogo44">
                     <Platform Name="Win32">
                         <RemoteDir>Assets\</RemoteDir>
                         <RemoteName>Logo44x44.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="..\BIN\Win32\Debug\HesedSnow.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>HesedSnow.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

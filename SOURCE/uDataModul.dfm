@@ -1,8 +1,8 @@
 object DM: TDM
   OldCreateOrder = False
   OnCreate = DataModuleCreate
-  Height = 654
-  Width = 505
+  Height = 796
+  Width = 508
   object tVedomost: TADOTable
     Connection = myConnection
     CursorType = ctStatic
@@ -11,6 +11,7 @@ object DM: TDM
     Top = 64
   end
   object myConnection: TADOConnection
+    Connected = True
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=G:\GitCopy\HesedSno' +
       'w\BIN\Win32\Debug\Snow.mdb;Persist Security Info=False;'
@@ -376,5 +377,44 @@ object DM: TDM
         'unt ASC')
     Left = 176
     Top = 528
+  end
+  object tUchastniky: TADOTable
+    Connection = myConnection
+    TableName = 'Uchastniky'
+    Left = 24
+    Top = 648
+  end
+  object qUchastniky: TADOQuery
+    Connection = myConnection
+    Parameters = <>
+    Left = 24
+    Top = 696
+  end
+  object dsUchastniky: TDataSource
+    DataSet = qUchastniky
+    Left = 24
+    Top = 744
+  end
+  object OpenDialog: TOpenDialog
+    Left = 104
+    Top = 8
+  end
+  object tHousehold: TADOTable
+    Connection = myConnection
+    TableName = 'Household'
+    Left = 96
+    Top = 648
+  end
+  object tAdditData: TADOTable
+    Connection = myConnection
+    TableName = 'AdditionalData'
+    Left = 160
+    Top = 648
+  end
+  object tVibivshie: TADOTable
+    Connection = myConnection
+    TableName = 'Vibivshie'
+    Left = 216
+    Top = 648
   end
 end

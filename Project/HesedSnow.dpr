@@ -19,7 +19,8 @@ uses
   uFrameZvitBank in '..\SOURCE\uFrameZvitBank.pas' {frmZvitBank: TFrame},
   uFrameUtils in '..\SOURCE\uFrameUtils.pas' {frmUtils: TFrame},
   uPdfiumDll in '..\SOURCE\pdfium\uPdfiumDll.pas',
-  uPdfiumIntf in '..\SOURCE\pdfium\uPdfiumIntf.pas';
+  uPdfiumIntf in '..\SOURCE\pdfium\uPdfiumIntf.pas',
+  uFrameAnalitic in '..\SOURCE\uFrameAnalitic.pas' {frmAnalitic: TFrame};
 
 {$R *.res}
 
