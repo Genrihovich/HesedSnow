@@ -782,12 +782,19 @@ function ExportExcelToBDTable(tabl: string; cleantabl: boolean;
   MyTable: TADOTable; myFields: TStrings): boolean;
 var
   CollectionNameTable: TDictionary<string, Integer>;
-  i, z, col, m, n: Integer;
-  s, E: string;
+  i, z, col, m, n, k: Integer;
+  s, F, o: string;
+  MyTableColumn: TStrings;
 begin
   Result := False;
 
   try
+  //создадим список столбцов нашей таблицы
+   MyTableColumn := TStringList.Create;
+  MyTableColumn := GetColumnNames(MyTable);
+  k:= MyTableColumn.count;
+   o := MyTableColumn.CommaText;
+
 
     with myForm, DM do
     begin
@@ -811,7 +818,7 @@ begin
           for z := 1 to col do
           begin
             if not CollectionNameTable.ContainsKey(MyExcel.Cells[1, z].value)
-            then
+            then //якщо в заголовку є точка то забрати її
               CollectionNameTable.Add(StringReplace(MyExcel.Cells[1, z].value,
                 '.', '', [rfReplaceAll]), z)
             else
@@ -840,15 +847,33 @@ begin
 
             for i := 0 to myFields.Count - 1 do
             begin
-              s := myFields[i];
-              E := MyExcel.Cells
-                [m, StrToInt(CollectionNameTable.Items[myFields[i]]
-                .ToString)].value;
+              try
+                s := myFields[i];
 
-              MyTable.FieldByName(myFields[i]).AsString :=
-                MyExcel.Cells
-                [m, StrToInt(CollectionNameTable.Items[myFields[i]]
-                .ToString)].value;
+               // перевірити чи є таке поле в таблиці
+               if MyTableColumn.IndexOf(s) <> -1 then
+               begin
+                F := MyExcel.Cells
+                  [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                  .ToString)].value;
+
+                 MyTable.FieldByName(myFields[i]).AsString :=
+                  MyExcel.Cells
+                  [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                  .ToString)].value;
+               end
+               else
+                    ShowMessage('Такого поля, як - ' + s + ' не існуе в Базі Данних');
+
+              except
+                on E: Exception do
+                begin
+                 ShowMessage('Щось не так з столбцями - ' + s);
+                 raise;
+                end;
+              end;
+
+
             end;
 
             MyTable.Post;
@@ -866,6 +891,7 @@ begin
       StopExcel;
       CollectionNameTable.Clear;
       CollectionNameTable.Free;
+      MyTableColumn.Free;
       MyTable.Active := False;
       myForm.ProgressBar.Visible := False;
       // DM.qUslugy.Active := false;
@@ -881,12 +907,14 @@ begin
       StopExcel;
       CollectionNameTable.Clear;
       CollectionNameTable.Free;
+      MyTableColumn.Free;
       myForm.ProgressBar.Visible := False;
     end;
   end;
 end;
 
 // Вставка в таблицу первоначальных данных о регионах(кураторах)
+//  if InsertDataAnalitic(sqlText, 'Проанкетовані') = false ShowMessage('Нема данних або невірний запрос для Регіонів');
 function InsertDataAnalitic(sqlText, fieldValue: String): boolean;
 var
   i: Integer;
@@ -918,7 +946,7 @@ begin
       tAnaliticAll.Active := False;
       tAnaliticAll.Active := True;
     end;
-
+   qUchastniky.Active := False;
   end;
 end;
 

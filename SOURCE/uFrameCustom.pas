@@ -15,7 +15,7 @@ type
   public
     { Public declarations }
     procedure AfterCreation; virtual; // Вызывается после создания frame
-    procedure BeforeDestruct;    virtual;
+    procedure BeforeDestruct; virtual;
     procedure AfterSkinChange; virtual;
     procedure BeforeSkinChange; virtual;
     procedure SkinActiveChanged; virtual;

@@ -11,6 +11,7 @@ object DM: TDM
     Top = 64
   end
   object myConnection: TADOConnection
+    Connected = True
     ConnectionString = 
       'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=G:\GitCopy\HesedSno' +
       'w\BIN\Win32\Debug\Snow.mdb;Persist Security Info=False;'
@@ -261,6 +262,7 @@ object DM: TDM
   end
   object qUchastniky: TADOQuery
     Connection = myConnection
+    CursorType = ctStatic
     Parameters = <>
     Left = 496
     Top = 72

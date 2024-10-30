@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, System.Variants, System.SysUtils, System.Generics.Collections,
-  Vcl.Dialogs;
+  Vcl.Dialogs, Data.DB, Data.Win.ADODB;
 
 Function CuratorsList(table, pole: String): TStringList;
 Function GorodsList(kurator: String): TStringList;
@@ -17,11 +17,13 @@ procedure ImportExcelToBD;
 // поиск значения поля в таблице
 function SearchPoziciyString(Tabl, pole, Values, RezPole: string): String;
 // подключение к бд в облаке
-function ConnectBD(provider, user, psw, server, db, port: string): boolean;
+function ConnectBD(provider, user, psw, server, DB, port: string): boolean;
 // импорт из екселя в таблицу данные в облако
 function ImportExcelToUniTable(fName, table: string): boolean;
 // вставка нужной строки одной таблицы в другую
 procedure InsertCustomRowIntoNewTable(s, table_out, table_in: String);
+// получить список всех столбцов таблицы
+function GetColumnNames(ADOTable: TADOTable): TStrings;
 
 implementation
 
@@ -29,123 +31,114 @@ uses uDataModul, uMyExcel, uMyProcedure, uMainForm, uFrameVidomist;
 
 function ImportExcelToUniTable(fName, table: string): boolean;
 var
-  col,z,m,n: integer;
-  CollectionNameColumIntoExcel : TDictionary<string, integer>;
+  col, z, m, n: integer;
+  CollectionNameColumIntoExcel: TDictionary<string, integer>;
   CollectionNameColumnTable: TDictionary<integer, string>;
-  field_s, value_s, sql_text : WideString;
+  field_s, value_s, sql_text: WideString;
   stroka, kolonka: string;
 begin
   Result := false;
   try
-       if uMyExcel.RunExcel(false, false) = true then
+    if uMyExcel.RunExcel(false, false) = true then
       // проверка на инсталл и запуск Excel
-    if uMyExcel.OpenWorkBook(fName, true) then
-    // открываем книгу Excel
-    begin
-      myForm.ProgressBar.Visible := true;
-      MyExcel.ActiveWorkBook.Sheets[1];
-
-      // последняя заполненная колонка
-      col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
-
-      // ------ пробежимся расставим индексы названий столбцов из ексель -------
-
-      CollectionNameColumIntoExcel := TDictionary<string, integer>.Create();
-      for z := 1 to col do
+      if uMyExcel.OpenWorkBook(fName, true) then
+      // открываем книгу Excel
       begin
-        if not CollectionNameColumIntoExcel.ContainsKey(MyExcel.Cells[1, z].value) then
-          CollectionNameColumIntoExcel.Add(MyExcel.Cells[1, z].value, z)
-        else
-          CollectionNameColumIntoExcel.Add(MyExcel.Cells[1, z].value + z.ToString, z);
-      end;
+        myForm.ProgressBar.Visible := true;
+        MyExcel.ActiveWorkBook.Sheets[1];
 
+        // последняя заполненная колонка
+        col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
 
+        // ------ пробежимся расставим индексы названий столбцов из ексель -------
 
-      // --- создадим список столбцов данной таблицы из БД -------------
-      DM.UniTable1.Active := false;
-      DM.UniTable1.TableName := table;
-      DM.UniTable1.Active := true;
-
-      field_s := '';
-      value_s := '';
-      CollectionNameColumnTable := TDictionary<integer, string>.Create();
-      for z := 0 to DM.UniTable1.FieldCount -1 do
-      begin
-       CollectionNameColumnTable.Add(z+1, DM.UniTable1.Fields[z].FieldName);
-
-       if (z = DM.UniTable1.FieldCount -1) then field_s := field_s + '`' + DM.UniTable1.Fields[z].FieldName + '`'
-       else field_s := field_s + '`' + DM.UniTable1.Fields[z].FieldName + '`, ';
-      end;
-
-
-
-
-
-
-
-
-
-
-
-      m := 2; // начинаем считывание со 2-й строки, оставляя заголовок колонки
-
-      // последняя заполненная строка
-      n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
-      n := n + 1;
-      with DM, myForm do
-      begin
-//        CleanOutTable('Vidomist'); // обнуляем таблицу
-        ProgressBar.Min := 0;
-        ProgressBar.Max := n;
-        ProgressBar.Position := 1;
-         while m <> n do // цикл внешний по записям EXCEL
-        begin
-
+        CollectionNameColumIntoExcel := TDictionary<string, integer>.Create();
         for z := 1 to col do
-          begin
-           kolonka := CollectionNameColumnTable.Items[z];
-          stroka := MyExcel.Cells[m, StrToInt(CollectionNameColumIntoExcel.Items[kolonka].ToString)].value;//0002477265
-
-           if z = n then
-           value_s := value_s + '''' + stroka + ''''
-           else
-           value_s := value_s + '''' + stroka + ''', ';
-
-          end;
-
-        DM.UniQuery1.Active := False;
-        DM.UniQuery1.SQL.Clear;
-
-        sql_text := 'INSERT INTO `hesed_test`.`' + table + '` (' + field_s + ') VALUES (' + value_s + ');';
-
-        DM.UniQuery1.SQL.Add(sql_text);
-        DM.UniQuery1.ExecSQL;
-
-
-
-           Inc(m);
-          // Application.ProcessMessages;
-          Sleep(25);
-          ProgressBar.Position := m;
+        begin
+          if not CollectionNameColumIntoExcel.ContainsKey
+            (MyExcel.Cells[1, z].value) then
+            CollectionNameColumIntoExcel.Add(MyExcel.Cells[1, z].value, z)
+          else
+            CollectionNameColumIntoExcel.Add(MyExcel.Cells[1, z].value +
+              z.ToString, z);
         end;
 
+        // --- создадим список столбцов данной таблицы из БД -------------
+        DM.UniTable1.Active := false;
+        DM.UniTable1.TableName := table;
+        DM.UniTable1.Active := true;
 
+        field_s := '';
+        value_s := '';
+        CollectionNameColumnTable := TDictionary<integer, string>.Create();
+        for z := 0 to DM.UniTable1.FieldCount - 1 do
+        begin
+          CollectionNameColumnTable.Add(z + 1,
+            DM.UniTable1.Fields[z].FieldName);
 
+          if (z = DM.UniTable1.FieldCount - 1) then
+            field_s := field_s + '`' + DM.UniTable1.Fields[z].FieldName + '`'
+          else
+            field_s := field_s + '`' + DM.UniTable1.Fields[z].FieldName + '`, ';
+        end;
+
+        m := 2; // начинаем считывание со 2-й строки, оставляя заголовок колонки
+
+        // последняя заполненная строка
+        n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
+        n := n + 1;
+        with DM, myForm do
+        begin
+          // CleanOutTable('Vidomist'); // обнуляем таблицу
+          ProgressBar.Min := 0;
+          ProgressBar.Max := n;
+          ProgressBar.Position := 1;
+          while m <> n do // цикл внешний по записям EXCEL
+          begin
+
+            for z := 1 to col do
+            begin
+              kolonka := CollectionNameColumnTable.Items[z];
+              stroka := MyExcel.Cells
+                [m, StrToInt(CollectionNameColumIntoExcel.Items[kolonka]
+                .ToString)].value; // 0002477265
+
+              if z = n then
+                value_s := value_s + '''' + stroka + ''''
+              else
+                value_s := value_s + '''' + stroka + ''', ';
+
+            end;
+
+            DM.UniQuery1.Active := false;
+            DM.UniQuery1.SQL.Clear;
+
+            sql_text := 'INSERT INTO `hesed_test`.`' + table + '` (' + field_s +
+              ') VALUES (' + value_s + ');';
+
+            DM.UniQuery1.SQL.Add(sql_text);
+            DM.UniQuery1.ExecSQL;
+
+            Inc(m);
+            // Application.ProcessMessages;
+            Sleep(25);
+            ProgressBar.Position := m;
+          end;
+
+        end;
+        CollectionNameColumIntoExcel.Free;
+        CollectionNameColumnTable.Free;
+        MyExcel.Application.DisplayAlerts := false;
+        StopExcel;
 
       end;
-           CollectionNameColumIntoExcel.Free;
-           CollectionNameColumnTable.Free;
-           MyExcel.Application.DisplayAlerts := false;
-           StopExcel;
-
-    end;
 
   except
     on E: Exception do
     begin
-     CollectionNameColumIntoExcel.Free;
-     CollectionNameColumnTable.Free;
-     StopExcel;
+      CollectionNameColumIntoExcel.Free;
+      CollectionNameColumnTable.Free;
+      StopExcel;
     end;
   end;
 
@@ -206,16 +199,15 @@ begin
 
           tVedomost.Insert;
 
-          if (MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Номер'].ToString)].value)<> '' then
+          if (MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Номер']
+            .ToString)].value) <> '' then
           begin
-           tVedomost.FieldByName('Num_Uslugy').AsString :=
-            MyExcel.Cells
-            [m, StrToInt(CollectionNameTable.Items['Номер'].ToString)].value;
+            tVedomost.FieldByName('Num_Uslugy').AsString :=
+              MyExcel.Cells
+              [m, StrToInt(CollectionNameTable.Items['Номер'].ToString)].value;
           end
-          else tVedomost.FieldByName('Num_Uslugy').AsString := 'none';
-
-
-
+          else
+            tVedomost.FieldByName('Num_Uslugy').AsString := 'none';
 
           tVedomost.FieldByName('JDCID').AsString :=
             MyExcel.Cells
@@ -223,25 +215,27 @@ begin
 
           tVedomost.FieldByName('FIO').AsString :=
             MyExcel.Cells
-            [m, StrToInt(CollectionNameTable.Items['Клиент'].ToString)].value;
+            [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value;
 
           tVedomost.FieldByName('Count_usl').AsCurrency :=
             MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Количество']
             .ToString)].value;
 
-            s:= (MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Стоимость услуги'].ToString)].value);
+          s := (MyExcel.Cells[m,
+            StrToInt(CollectionNameTable.Items['Стоимость услуги']
+            .ToString)].value);
 
-           if s <> '' then
+          if s <> '' then
           begin
             tVedomost.FieldByName('Cost_usl').AsCurrency :=
-            MyExcel.Cells
-            [m, StrToInt(CollectionNameTable.Items['Стоимость услуги'].ToString)].value;
+              MyExcel.Cells
+              [m, StrToInt(CollectionNameTable.Items['Стоимость услуги']
+              .ToString)].value;
           end
           else
           begin
-          tVedomost.FieldByName('Cost_usl').AsCurrency := 0;
+            tVedomost.FieldByName('Cost_usl').AsCurrency := 0;
           end;
-          
 
           tVedomost.FieldByName('Programma').AsString :=
             MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Программа']
@@ -287,7 +281,8 @@ begin
 
           tVedomost.FieldByName('Gorod').AsString :=
             MyExcel.Cells
-            [m, StrToInt(CollectionNameTable.Items['Город проживания'].ToString)].value;
+            [m, StrToInt(CollectionNameTable.Items['Город проживания']
+            .ToString)].value;
 
           tVedomost.Post;
           Inc(m);
@@ -530,8 +525,8 @@ begin
         Active := false;
         SQL.Clear;
         SQL.Add('SELECT * FROM Vidomist WHERE (((Vidomist.Curator)="' +
-          vKurators + '") AND ((Vidomist.Gorod)="' + gorods[g] + '")) ORDER BY Vidomist.FIO;');
-
+          vKurators + '") AND ((Vidomist.Gorod)="' + gorods[g] +
+          '")) ORDER BY Vidomist.FIO;');
 
         Active := true;
         First;
@@ -582,14 +577,13 @@ begin
     SaveWorkBook(flName, 1); // Сохраняем файл
     Result := true;
 
-    //сохраняем путь к файлу в глобальную переменную
-      uFrameVidomist.VedomistFileName := flName;
-
+    // сохраняем путь к файлу в глобальную переменную
+    uFrameVidomist.VedomistFileName := flName;
 
     // друк документа
     if vPrint = true then
 
-    MyExcel.Worksheets.PrintOut;
+      MyExcel.Worksheets.PrintOut;
   end;
   StopExcel;
   ExcelApp := Unassigned;
@@ -618,13 +612,12 @@ begin
   end;
 end;
 
-
 { * ----------  поиск значения поля в таблице   ----------------------------
- Tabl - таблица
- pole, поле в котором поиск
- Values, значение поля, которое надо найти
- RezPole вынуть из этого поля результат
-==== mail := SearchPoziciyString('Curators', 'curFIO', curator, 'curEMail');====
+  Tabl - таблица
+  pole, поле в котором поиск
+  Values, значение поля, которое надо найти
+  RezPole вынуть из этого поля результат
+  ==== mail := SearchPoziciyString('Curators', 'curFIO', curator, 'curEMail');====
 }
 function SearchPoziciyString(Tabl, pole, Values, RezPole: string): String;
 begin
@@ -679,13 +672,13 @@ end;
   db = hesed_test,
   port = 3306
 }
-function ConnectBD(provider, user, psw, server, db, port: string): boolean;
+function ConnectBD(provider, user, psw, server, DB, port: string): boolean;
 begin
   Result := false;
   with DM do
   begin
     UniConnection.ConnectString := 'Provider Name=' + provider + ';User ID=' +
-      user + ';Password=' + psw + ';Data Source=' + server + ';Database=' + db +
+      user + ';Password=' + psw + ';Data Source=' + server + ';Database=' + DB +
       ';Port=' + port + '';
 
     UniConnection.Connected := true;
@@ -694,21 +687,45 @@ begin
   end;
 end;
 
-
 // вставка нужной строки одной таблицы в другую
 procedure InsertCustomRowIntoNewTable(s, table_out, table_in: String);
 begin
-   with DM.qQuery do
+  with DM.qQuery do
   begin
     Active := false;
     Close;
     SQL.Clear;
-    SQL.Add('INSERT INTO ' + table_in +'');
+    SQL.Add('INSERT INTO ' + table_in + '');
     SQL.Add('SELECT * from ' + table_out + '');
-    SQL.Add('where NumCount='+ s +';');
+    SQL.Add('where NumCount=' + s + ';');
     ExecSQL;
     Close;
   end;
+end;
+
+// получить список всех столбцов таблицы
+function GetColumnNames(ADOTable: TADOTable): TStrings;
+var
+  i, k: integer;
+  StringList: TStrings;
+  s: string;
+begin
+  StringList := TStringList.Create;
+  ADOTable.Open;
+  try
+    for i := 0 to ADOTable.FieldDefs.Count - 1 do
+    begin
+    s := ADOTable.FieldDefs[i].name;
+      StringList.Add(ADOTable.FieldDefs[i].name);
+    end;
+    k := StringList.Count;
+    Result := StringList;
+  except
+    StringList.Free; // Освобождение памяти в случае ошибки
+    ADOTable.Close;
+    raise;
+  end;
+ ADOTable.Close;
 end;
 
 end.

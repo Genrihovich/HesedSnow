@@ -44,6 +44,7 @@ type
   public
     { Public declarations }
     procedure AfterCreation; override; // Вызывается после создания frame
+    procedure BeforeDestruct; virtual;
 
   end;
 
@@ -52,6 +53,12 @@ implementation
 {$R *.dfm}
 
 uses uMyProcedure, uDataModul, sStoreUtils, uMainForm;
+
+procedure TfrmAnalitic.BeforeDestruct;
+begin
+  DM.qAnaliticAll.Close;
+  DM.tAnaliticAll.Close;
+end;
 
 procedure TfrmAnalitic.AfterCreation;
 var
@@ -68,6 +75,8 @@ begin
   s := sStoreUtils.ReadIniString('NameRollOut', 'Vibivshie', IniName);
   if s <> '' then roVibivshie.Caption := s;
 
+
+
 end;
 
 
@@ -77,7 +86,13 @@ begin // відкриття панелі імпорта данних
   if splitView.Opened then
     splitView.Opened := false
   else
+  begin
     splitView.Opened := True;
+    memUch.Lines.LoadFromFile(ExtractFilePath(ParamStr(0))+ '/Uchastniky.dat');
+    memVibivshie.Lines.LoadFromFile(ExtractFilePath(ParamStr(0))+ '/Vibivshie.dat');
+    memHousehold.Lines.LoadFromFile(ExtractFilePath(ParamStr(0))+ '/Household.dat');
+    memAdditData.Lines.LoadFromFile(ExtractFilePath(ParamStr(0))+ '/AdditData.dat');
+  end;
 end;
 
 
@@ -90,15 +105,49 @@ begin  //  Загрузка доп данних учасників
     roAdditData.Caption := 'Імпорт додаткових параметрів ' + DateToStr(Date);
     sStoreUtils.WriteIniStr('NameRollOut', 'AdditData', roAdditData.Caption, IniName);
     ShowMessage('Імпорт завершено!');
+    memAdditData.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+ '/AdditData.dat');
   end
   else
     ShowMessage('Не вдала спроба імпорту');
 end;
 
 procedure TfrmAnalitic.btnCalckClick(Sender: TObject);
+var
+sqlText : String;
 begin
   inherited;
-  //
+  // очистить таблицу
+  CleanOutTable('analiticAll');
+//  DM.qAnaliticAll.Active := false;
+  //   ----------------------------- регионы -------------------------------
+  try
+  sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+             'FROM Uchastniky ' +
+             'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"")) ' +
+             'GROUP BY Uchastniky.Куратор;';
+
+  if InsertDataAnalitic(sqlText, 'Проанкетовані') = false then
+   ShowMessage('Нема данних або невірний запрос для Регіонів');
+  except on E: Exception do ShowMessage('Помилка на блоці Регіони');
+  end;
+{
+  //   -------------------------------- ЖН ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.ЖН)="ВЕРНО")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'ЖН') = false then
+   ShowMessage('Нема данних або невірний запрос для ЖН');
+  except on E: Exception do ShowMessage('Помилка на блоці ЖН');
+  end;  }
+
+
+
+
+
+   DM.qAnaliticAll.Active := true;
 end;
 
 procedure TfrmAnalitic.btnDomgospClick(Sender: TObject);
@@ -110,6 +159,7 @@ begin // Загрузка данних про домогосподарства
     roHousehold.Caption := 'Імпорт домогосподарств ' + DateToStr(Date);
     sStoreUtils.WriteIniStr('NameRollOut', 'Household', roHousehold.Caption, IniName);
     ShowMessage('Імпорт завершено!');
+    memHousehold.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+ '/Household.dat');
   end
   else
     ShowMessage('Не вдала спроба імпорту');
@@ -130,6 +180,7 @@ begin // Загрузка данних про учасників
     roUch.Caption := 'Імпорт учасників ' + DateToStr(Date);
     sStoreUtils.WriteIniStr('NameRollOut', 'Uchastniky', roUch.Caption, IniName);
     ShowMessage('Імпорт завершено!');
+    memUch.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+ '/Uchastniky.dat');
   end
   else
     ShowMessage('Не вдала спроба імпорту');
@@ -144,6 +195,7 @@ begin  //   Загрузка данних про вибивших клієнтів
     roVibivshie.Caption := 'Імпорт вибувших ' + DateToStr(Date);
     sStoreUtils.WriteIniStr('NameRollOut', 'Vibivshie', roVibivshie.Caption, IniName);
     ShowMessage('Імпорт завершено!');
+    memVibivshie.Lines.SaveToFile(ExtractFilePath(ParamStr(0))+ '/Vibivshie.dat');
   end
   else
     ShowMessage('Не вдала спроба імпорту');
