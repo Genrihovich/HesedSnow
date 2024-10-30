@@ -119,7 +119,7 @@ begin
   // очистить таблицу
   CleanOutTable('analiticAll');
 //  DM.qAnaliticAll.Active := false;
-  //   ----------------------------- регионы -------------------------------
+  //   ----------------------------- регионы ----------------------------------
   try
   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
              'FROM Uchastniky ' +
@@ -130,7 +130,7 @@ begin
    ShowMessage('Нема данних або невірний запрос для Регіонів');
   except on E: Exception do ShowMessage('Помилка на блоці Регіони');
   end;
-{
+
   //   -------------------------------- ЖН ---------------------------------
   try
    sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
@@ -141,7 +141,20 @@ begin
    if InsertDataAnaliticAll(sqlText, 'ЖН') = false then
    ShowMessage('Нема данних або невірний запрос для ЖН');
   except on E: Exception do ShowMessage('Помилка на блоці ЖН');
-  end;  }
+  end;
+
+  //   -------------------------------- НЖН ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.ЖН)="НЕВЕРНО")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'НЖН') = false then
+   ShowMessage('Нема данних або невірний запрос для НЖН');
+  except on E: Exception do ShowMessage('Помилка на блоці НЖН');
+  end;
+   { }
 
 
 
