@@ -9,7 +9,7 @@ uses
   sFrameAdapter, sPanel, Vcl.StdCtrls, Vcl.Buttons, sBitBtn, Vcl.ExtCtrls,
   sMemo,
   DBGridEhGrouping, ToolCtrlsEh, DBGridEhToolCtrls, DynVarsEh, EhLibVCL,
-  GridsEh, DBAxisGridsEh, DBGridEh;
+  GridsEh, DBAxisGridsEh, DBGridEh, Data.DB, Vcl.Grids, Vcl.DBGrids, acDBGrid;
 
 type
   TfrmAnalitic = class(TCustomInfoFrame)
@@ -31,6 +31,7 @@ type
     panAll: TsPanel;
     DBGridEh1: TDBGridEh;
     memUch: TsMemo;
+    sDBGrid1: TsDBGrid;
     procedure btnImportClick(Sender: TObject);
     // procedure btnCalckClikClick(Sender: TObject);
     procedure btnExportToExcelClick(Sender: TObject);
@@ -178,6 +179,69 @@ begin
    ShowMessage('Нема данних або невірний запрос для НН');
   except on E: Exception do ShowMessage('Помилка на блоці НН');
   end;
+
+   //   ------------------------------ КЛІЕНТ ------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%Клиент Хеседа%")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'Клієнти') = false then
+   ShowMessage('Нема данних або невірний запрос для Клієнти');
+  except on E: Exception do ShowMessage('Помилка на блоці Клієнти');
+  end;
+
+  //   -------------------------------- діти 0-17 ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Возраст) Between 0 And 17)) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'діти 0-17') = false then
+   ShowMessage('Нема данних або невірний запрос для діти 0-17');
+  except on E: Exception do ShowMessage('Помилка на блоці діти 0-17');
+  end;
+
+   //   ------------------------------ CI ------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%CI%")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'CI') = false then
+   ShowMessage('Нема данних або невірний запрос для CI');
+  except on E: Exception do ShowMessage('Помилка на блоці CI');
+  end;
+
+   //   ------------------------------ Інвалідність----------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Инвалидность)="Да")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'Інвалидность') = false then
+   ShowMessage('Нема данних або невірний запрос для Інвалідність');
+  except on E: Exception do ShowMessage('Помилка на блоці Інвалідність');
+  end;
+
+   //   ------------------------------ Національність --------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Еврейское происхождение])="Да")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'Єврей') = false then
+   ShowMessage('Нема данних або невірний запрос для Національність');
+  except on E: Exception do ShowMessage('Помилка на блоці Національність');
+  end;
+
+
+
 
 
    DM.qAnaliticAll.Active := true;

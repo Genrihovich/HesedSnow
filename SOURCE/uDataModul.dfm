@@ -261,13 +261,24 @@ object DM: TDM
     Top = 24
   end
   object qUchastniky: TADOQuery
+    Active = True
     Connection = myConnection
     CursorType = ctStatic
     Parameters = <>
+    SQL.Strings = (
+      
+        'SELECT Uchastniky.'#1050#1091#1088#1072#1090#1086#1088', Count(Uchastniky.['#1050#1086#1076' '#1086#1088#1075#1072#1085#1080#1079#1072#1094#1080#1080']) A' +
+        'S [Count-'#1060#1048#1054']'
+      'FROM Uchastniky'
+      
+        'WHERE (((Uchastniky.['#1058#1080#1087' '#1082#1083#1080#1077#1085#1090#1072' ('#1076#1083#1103' '#1087#1086#1080#1089#1082#1072')])<>"") AND ((Uchas' +
+        'tniky.'#1048#1085#1074#1072#1083#1080#1076#1085#1086#1089#1090#1100')="'#1044#1072'"))'
+      'GROUP BY Uchastniky.'#1050#1091#1088#1072#1090#1086#1088';')
     Left = 496
     Top = 72
   end
   object dsUchastniky: TDataSource
+    AutoEdit = False
     DataSet = qUchastniky
     Left = 496
     Top = 120

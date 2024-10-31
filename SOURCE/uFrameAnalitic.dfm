@@ -361,6 +361,29 @@ inherited frmAnalitic: TfrmAnalitic
       object RowDetailData: TRowDetailPanelControlEh
       end
     end
+    object sDBGrid1: TsDBGrid
+      Left = 72
+      Top = 312
+      Width = 953
+      Height = 233
+      Color = 15921906
+      DataSource = DM.dsUchastniky
+      DrawingStyle = gdsGradient
+      GradientEndColor = 13353918
+      GradientStartColor = 14539223
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'Tahoma'
+      TitleFont.Style = []
+    end
   end
   object panTop: TsPanel [1]
     Left = 0
