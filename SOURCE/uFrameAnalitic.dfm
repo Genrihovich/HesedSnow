@@ -14,7 +14,7 @@ inherited frmAnalitic: TfrmAnalitic
       Left = 1
       Top = 1
       Width = 1123
-      Height = 224
+      Height = 280
       Align = alTop
       DataSource = DM.dsAnaliticAll
       DynProps = <>

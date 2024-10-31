@@ -154,8 +154,18 @@ begin
    ShowMessage('Нема данних або невірний запрос для НЖН');
   except on E: Exception do ShowMessage('Помилка на блоці НЖН');
   end;
-   { }
 
+  //   -------------------------------- ВПО ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Беженец/ВПЛ])="Кризис 2022")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'ВПО') = false then
+   ShowMessage('Нема данних або невірний запрос для ВПО');
+  except on E: Exception do ShowMessage('Помилка на блоці ВПО');
+  end;
 
 
 
