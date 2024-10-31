@@ -167,7 +167,17 @@ begin
   except on E: Exception do ShowMessage('Помилка на блоці ВПО');
   end;
 
+  //   -------------------------------- HH ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Дополнительные параметры]) like"%Новые нуждающиеся%")) ' +
+              'GROUP BY Uchastniky.Куратор;';
 
+   if InsertDataAnaliticAll(sqlText, 'НН') = false then
+   ShowMessage('Нема данних або невірний запрос для НН');
+  except on E: Exception do ShowMessage('Помилка на блоці НН');
+  end;
 
 
    DM.qAnaliticAll.Active := true;
