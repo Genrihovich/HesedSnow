@@ -963,6 +963,8 @@ begin
     qUchastniky.SQL.Clear;
     qUchastniky.SQL.Add(sqlText);
     qUchastniky.Active := True;
+    tAnaliticAll.Close;
+    tAnaliticAll.Open;
 
     if qUchastniky.RecordCount <> 0 then
     begin

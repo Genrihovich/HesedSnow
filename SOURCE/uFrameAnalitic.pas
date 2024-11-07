@@ -240,9 +240,34 @@ begin
   except on E: Exception do ShowMessage('Помилка на блоці Національність');
   end;
 
+   //   ------------------------------ Патронажні ------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%Патронажный работник%")) ' +
+              'GROUP BY Uchastniky.Куратор;';
 
+   if InsertDataAnaliticAll(sqlText, 'Патронажні') = false then
+   ShowMessage('Нема данних або невірний запрос для Патронажні');
+  except on E: Exception do ShowMessage('Помилка на блоці Патронажні');
+  end;
 
+   //   ------------------------------ Співробітники ------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"" ' +
+              'And (Uchastniky.[Тип клиента (для поиска)]) Like "%Сотр%" ' +
+              'Or (Uchastniky.[Тип клиента (для поиска)]) Like "%Кура%" ' +
+              'Or (Uchastniky.[Тип клиента (для поиска)]) Like "%Дирек%" ' +
+              'Or (Uchastniky.[Тип клиента (для поиска)]) Like "%кейс%" ' +
+              'Or (Uchastniky.[Тип клиента (для поиска)]) Like "%Бухг%")) ' +
+              'GROUP BY Uchastniky.Куратор;';
 
+   if InsertDataAnaliticAll(sqlText, 'Співробітники') = false then
+   ShowMessage('Нема данних або невірний запрос для Співробітники');
+  except on E: Exception do ShowMessage('Помилка на блоці Співробітники');
+  end;
 
    DM.qAnaliticAll.Active := true;
 end;
