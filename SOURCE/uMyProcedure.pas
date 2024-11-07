@@ -1011,7 +1011,7 @@ begin
       MyExcel.Workbooks.Add; // добавляем новую книгу
     Sheets := MyExcel.Worksheets.Add;
     Sheets.Name := 'Analitics';
-    ParametryStr; // Парметры страницы
+    ParametryStr; // Параметры страницы
     Sheets.PageSetup.PrintTitleRows := '$2:$2';
 
     // Параметры таблицы ( цифра номер столбца ) ширины столбцов
@@ -1104,6 +1104,20 @@ begin
       end;
 
     end;
+
+    with DM.tAnaliticAll do
+    begin
+      Active := true;
+      First;
+      for i := 0 to RecordCount - 1 do
+        begin
+          val := FieldByName('Регіон').AsString;
+
+          Next;
+        end;
+    end;
+
+
 
     Sheets := unassigned;
     ExcelApp := unassigned;
