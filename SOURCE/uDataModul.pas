@@ -67,6 +67,8 @@ type
     UniConnection: TUniConnection;
     UniQuery1: TUniQuery;
     UniDataSource1: TUniDataSource;
+    dsCurators: TDataSource;
+    qCurators: TADOQuery;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }

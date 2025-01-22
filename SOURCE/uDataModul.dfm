@@ -2,7 +2,7 @@ object DM: TDM
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   Height = 642
-  Width = 632
+  Width = 847
   object tVedomost: TADOTable
     Connection = myConnection
     CursorType = ctStatic
@@ -39,13 +39,13 @@ object DM: TDM
     Top = 64
   end
   object DataSource1: TDataSource
-    Left = 296
-    Top = 248
+    Left = 568
+    Top = 256
   end
   object ADOQuery1: TADOQuery
     Parameters = <>
-    Left = 296
-    Top = 200
+    Left = 568
+    Top = 208
   end
   object tUslugy: TADOTable
     Connection = myConnection
@@ -184,6 +184,7 @@ object DM: TDM
     Top = 400
   end
   object tCurators: TADOTable
+    Active = True
     Connection = myConnection
     CursorType = ctStatic
     TableName = 'Curators'
@@ -444,5 +445,22 @@ object DM: TDM
     DataSet = UniQuery1
     Left = 424
     Top = 184
+  end
+  object dsCurators: TDataSource
+    DataSet = qCurators
+    Left = 264
+    Top = 168
+  end
+  object qCurators: TADOQuery
+    Connection = myConnection
+    CursorType = ctStatic
+    Parameters = <>
+    SQL.Strings = (
+      'select * from Curators'
+      'where curActive = true'
+      'and'
+      'curFIO = '#39#1064#1086#1087#1085#1080#1082' '#1052#1072#1088#1075#1072#1088#1080#1090#1072' '#1040#1088#1086#1085#1086#1074#1085#1072#39)
+    Left = 264
+    Top = 120
   end
 end

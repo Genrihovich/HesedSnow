@@ -16,6 +16,8 @@ function InsertRecord(Tabl, poles, _fio, _inn: String; _isObrok: boolean;
 procedure ImportExcelToBD;
 // поиск значени€ пол€ в таблице
 function SearchPoziciyString(Tabl, pole, Values, RezPole: string): String;
+// поиск значени€ пол€ в таблице при двух услови€х
+function SearchPoziciyString2(Tabl, pole, Values, pole2, RezPole: string): String;
 // подключение к бд в облаке
 function ConnectBD(provider, user, psw, server, DB, port: string): boolean;
 // импорт из ексел€ в таблицу данные в облако
@@ -634,6 +636,25 @@ begin
       Result := FieldByName(RezPole).AsString
     else
       Result := 'Error «апис не знайдено';
+  end;
+end;
+
+// поиск значени€ пол€ в таблице при двух услови€х
+function SearchPoziciyString2(Tabl, pole, Values, pole2, RezPole: string): String;
+begin
+   with DM.qQuery do
+  begin
+    Active := false;
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT * From ' + Tabl + ' Where (((' + Tabl + '.[' + pole + ']) = "' + Values + '") and (' + Tabl + '.[' + pole2 + ']) = True)');
+
+    Active := true;
+
+    if RecordCount > 0 then
+      Result := FieldByName(RezPole).AsString
+    else
+      Result := '';
   end;
 end;
 

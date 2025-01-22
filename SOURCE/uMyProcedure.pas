@@ -7,7 +7,7 @@ uses
   System.UITypes, JvStringGrid, sComboBox, DateUtils, sCheckBox, sScrollBox,
   Vcl.ExtCtrls, mimemess, mimepart, smtpsend, sLabel, Data.Win.ADODB,
   System.Character, DBGridEh,
-  System.Generics.Collections;
+  System.Generics.Collections, Winapi.ShellAPI, Vcl.Controls;
 
 // заполнение комбобокса месяцами
 procedure MonthComboBox(comboBox: TsComboBox);
@@ -789,12 +789,11 @@ begin
   Result := False;
 
   try
-  //создадим список столбцов нашей таблицы
-   MyTableColumn := TStringList.Create;
-  MyTableColumn := GetColumnNames(MyTable);
-  k:= MyTableColumn.count;
-   o := MyTableColumn.CommaText;
-
+    // создадим список столбцов нашей таблицы
+    MyTableColumn := TStringList.Create;
+    MyTableColumn := GetColumnNames(MyTable);
+    k := MyTableColumn.Count;
+    o := MyTableColumn.CommaText;
 
     with myForm, DM do
     begin
@@ -818,7 +817,7 @@ begin
           for z := 1 to col do
           begin
             if not CollectionNameTable.ContainsKey(MyExcel.Cells[1, z].value)
-            then //якщо в заголовку є точка то забрати її
+            then // якщо в заголовку є точка то забрати її
               CollectionNameTable.Add(StringReplace(MyExcel.Cells[1, z].value,
                 '.', '', [rfReplaceAll]), z)
             else
@@ -850,29 +849,29 @@ begin
               try
                 s := myFields[i];
 
-               // перевірити чи є таке поле в таблиці
-               if MyTableColumn.IndexOf(s) <> -1 then
-               begin
-                F := MyExcel.Cells
-                  [m, StrToInt(CollectionNameTable.Items[myFields[i]]
-                  .ToString)].value;
+                // перевірити чи є таке поле в таблиці
+                if MyTableColumn.IndexOf(s) <> -1 then
+                begin
+                  F := MyExcel.Cells
+                    [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                    .ToString)].value;
 
-                 MyTable.FieldByName(myFields[i]).AsString :=
-                  MyExcel.Cells
-                  [m, StrToInt(CollectionNameTable.Items[myFields[i]]
-                  .ToString)].value;
-               end
-               else
-                    ShowMessage('Такого поля, як - ' + s + ' не існуе в Базі Данних');
+                  MyTable.FieldByName(myFields[i]).AsString :=
+                    MyExcel.Cells
+                    [m, StrToInt(CollectionNameTable.Items[myFields[i]]
+                    .ToString)].value;
+                end
+                else
+                  ShowMessage('Такого поля, як - ' + s +
+                    ' не існуе в Базі Данних');
 
               except
                 on E: Exception do
                 begin
-                 ShowMessage('Щось не так з столбцями - ' + s);
-                 raise;
+                  ShowMessage('Щось не так з столбцями - ' + s);
+                  raise;
                 end;
               end;
-
 
             end;
 
@@ -914,7 +913,7 @@ begin
 end;
 
 // Вставка в таблицу первоначальных данных о регионах(кураторах)
-//  if InsertDataAnalitic(sqlText, 'Проанкетовані') = false ShowMessage('Нема данних або невірний запрос для Регіонів');
+// if InsertDataAnalitic(sqlText, 'Проанкетовані') = false ShowMessage('Нема данних або невірний запрос для Регіонів');
 function InsertDataAnalitic(sqlText, fieldValue: String): boolean;
 var
   i: Integer;
@@ -946,7 +945,7 @@ begin
       tAnaliticAll.Active := False;
       tAnaliticAll.Active := True;
     end;
-   qUchastniky.Active := False;
+    qUchastniky.Active := False;
   end;
 end;
 
@@ -959,12 +958,13 @@ begin
   Result := False;
   with DM do
   begin
+    tAnaliticAll.Close;
+    tAnaliticAll.Open;
+
     qUchastniky.Active := False;
     qUchastniky.SQL.Clear;
     qUchastniky.SQL.Add(sqlText);
     qUchastniky.Active := True;
-    tAnaliticAll.Close;
-    tAnaliticAll.Open;
 
     if qUchastniky.RecordCount <> 0 then
     begin
@@ -1002,12 +1002,12 @@ end;
 function SaveExcelFromGrid(grid: TDBGridEh): boolean;
 var
   Sheets, ExcelApp: Variant;
-  i, j: Integer;
-  val: String;
+  i, j, rows: Integer;
+  DirectoryNow, FileNameS, val, val2: String;
 begin
 
   try
-    if uMyExcel.RunExcel(False, True) = True then
+    if uMyExcel.RunExcel(False, False) = True then
       MyExcel.Workbooks.Add; // добавляем новую книгу
     Sheets := MyExcel.Worksheets.Add;
     Sheets.Name := 'Analitics';
@@ -1050,24 +1050,32 @@ begin
       'Аналітика по регіонам ХБФ "ХеседБешт" на  ' + DateTimeToStr(Now);
 
     // ----------------- Шапка таблицы --------------------------------------
-    ExcelApp := MyExcel.ActiveWorkBook.Worksheets[1].Rows;
+    ExcelApp := MyExcel.ActiveWorkBook.Worksheets[1].rows;
 
-    ExcelApp.Rows[3].RowHeight := 31.50;
-    ExcelApp.Rows[5].RowHeight := 21.00;
-    ExcelApp.Rows[6].RowHeight := 21.00;
-    ExcelApp.Rows[7].RowHeight := 21.00;
-    ExcelApp.Rows[8].RowHeight := 30.00;
-    ExcelApp.Rows[9].RowHeight := 21.00;
-    ExcelApp.Rows[10].RowHeight := 21.00;
-    ExcelApp.Rows[11].RowHeight := 30.00;
+    ExcelApp.rows[3].RowHeight := 31.50;
+    ExcelApp.rows[5].RowHeight := 21.00;
+    ExcelApp.rows[6].RowHeight := 21.00;
+    ExcelApp.rows[7].RowHeight := 21.00;
+    ExcelApp.rows[8].RowHeight := 30.00;
+    ExcelApp.rows[9].RowHeight := 21.00;
+    ExcelApp.rows[10].RowHeight := 21.00;
+    ExcelApp.rows[11].RowHeight := 30.00;
 
-    MyExcel.ActiveWorkBook.Worksheets[1].Range['A3:U15'].Select;
+    MyExcel.ActiveWorkBook.Worksheets[1].Range['A3:U13'].Select;
     MyExcel.Selection.HorizontalAlignment := xlCenter;
     MyExcel.Selection.VerticalAlignment := xlCenter;
     MyExcel.Selection.Font.Size := 8;
 
+    MyExcel.Selection.Borders.LineStyle := xlContinuous; // границы
+    MyExcel.Selection.Borders.Weight := xlThin; // показать
+
+    MyExcel.ActiveWorkBook.Worksheets[1].Range['A3:U3'].Select;
+    MyExcel.Selection.Borders[9].LineStyle := 9; // Двойная линия
+
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 1] := 'РСП';
+    ExcelApp.columns[1].WrapText := True;
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 2] := 'Регіони';
+    ExcelApp.columns[2].WrapText := True;
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 3] := 'Проанкетовані';
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 3].WrapText := True;
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 4] := 'ЖН';
@@ -1093,35 +1101,77 @@ begin
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 21] := 'Получають патронаж';
     MyExcel.ActiveWorkBook.Worksheets[1].Cells[3, 21].WrapText := True;
 
-    for i := 1 to grid.RowCount - 1 do // строки
-    begin
-
-      for j := 1 to grid.col - 1 do
-      // ColCount - 1 do // столбцы
-      begin
-        // val := grid.;
-
-      end;
-
-    end;
-
     with DM.tAnaliticAll do
     begin
-      Active := true;
+      Active := True;
       First;
-      for i := 0 to RecordCount - 1 do
-        begin
-          val := FieldByName('Регіон').AsString;
+      rows := 4; // старт з 4-ої строки
 
-          Next;
+      while not DM.tAnaliticAll.Eof do
+      begin
+        for i := 0 to FieldCount - 1 do
+        begin
+
+          if i = 0 then
+          begin
+            val := SearchPoziciyString2('Curators', 'curFIO',
+              Fields[i].AsString, 'curActive', 'curRegion');
+
+            if val <> '' then
+              MyExcel.ActiveWorkBook.Worksheets[1].Cells[rows, i + 1] := val;
+          end;
+
+          MyExcel.ActiveWorkBook.Worksheets[1].Cells[rows, i + 2] :=
+            Fields[i].AsString;
         end;
+
+        Inc(rows);
+        Next;
+      end;
     end;
 
+    // footer
+    Sheets.Range['C' + inttostr(rows) + ':U' + inttostr(rows) + ''].Select;
+    MyExcel.Selection.Borders[9].LineStyle := xlContinuous;
+    MyExcel.Selection.Borders[9].Weight := xlThin;
+    MyExcel.Selection.rows[1].Font.Bold := True;
+    MyExcel.Selection.rows[1].Font.Size := 10;
 
+    Sheets.Cells[rows, 3] := ('=SUM(C4:C' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 4] := ('=SUM(D4:D' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 5] := ('=SUM(E4:E' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 6] := ('=SUM(F4:F' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 7] := ('=SUM(G4:G' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 8] := ('=SUM(H4:H' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 9] := ('=SUM(I4:I' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 10] := ('=SUM(J4:J' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 11] := ('=SUM(K4:K' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 12] := ('=SUM(L4:L' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 13] := ('=SUM(M4:M' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 14] := ('=SUM(N4:N' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 15] := ('=SUM(O4:O' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 16] := ('=SUM(P4:P' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 17] := ('=SUM(Q4:Q' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 18] := ('=SUM(R4:R' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 19] := ('=SUM(S4:S' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 20] := ('=SUM(T4:T' + inttostr(rows - 1) + ')');
+    Sheets.Cells[rows, 21] := ('=SUM(U4:U' + inttostr(rows - 1) + ')');
+
+    DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Аналитика\';
+    if not DirectoryExists('DirectoryNow') then
+      ForceDirectories(DirectoryNow);
+    FileNameS := DirectoryNow + 'Аналітика_' +
+      FormatDateTime('dd.mm.yyyy hh_mm_ss', Now) + '.xlsx';
+
+    uMyExcel.SaveWorkBook(FileNameS, 1);
 
     Sheets := unassigned;
     ExcelApp := unassigned;
     uMyExcel.StopExcel;
+
+    ShowMessage('Данные экспортированы и сохранены в файл');
+
+    ShellExecute(0, 'open', PWideChar(DirectoryNow), nil, nil, SW_SHOWNORMAL);
 
   except
     on E: Exception do

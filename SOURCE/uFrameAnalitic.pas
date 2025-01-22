@@ -32,6 +32,7 @@ type
     panAll: TsPanel;
     DBGridEh1: TDBGridEh;
     memUch: TsMemo;
+    DBGridEh2: TDBGridEh;
     procedure btnImportClick(Sender: TObject);
     // procedure btnCalckClikClick(Sender: TObject);
     procedure btnExportToExcelClick(Sender: TObject);
@@ -40,8 +41,11 @@ type
     procedure btnAdditDataClick(Sender: TObject);
     procedure btnVibivshieClick(Sender: TObject);
     procedure btnCalckClick(Sender: TObject);
+    procedure panTopDblClick(Sender: TObject);
   private
     { Private declarations }
+
+
   public
     { Public declarations }
     procedure AfterCreation; override; // Вызывается после создания frame
@@ -131,6 +135,26 @@ begin
    ShowMessage('Нема данних або невірний запрос для Регіонів');
   except on E: Exception do ShowMessage('Помилка на блоці Регіони');
   end;
+
+ {  //   -------------------------------- ЖН ---------------------------------
+  try
+   sqlText := 'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] ' +
+              'FROM Uchastniky ' +
+              'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.ЖН)="ВЕРНО")) ' +
+              'GROUP BY Uchastniky.Куратор;';
+
+   if InsertDataAnaliticAll(sqlText, 'ЖН') = false then
+   ShowMessage('Нема данних або невірний запрос для ЖН');
+  except on E: Exception do ShowMessage('Помилка на блоці ЖН');
+  end;  }
+
+
+
+
+
+
+
+
 
   //   -------------------------------- ЖН ---------------------------------
   try
@@ -375,7 +399,7 @@ end;
 procedure TfrmAnalitic.btnExportToExcelClick(Sender: TObject);
 begin
   inherited;
- // if SaveExcelFromGrid(DBGridEh1) = true then ShowMessage('Дані вигружені у файл');
+  if SaveExcelFromGrid(DBGridEh1) = true then ShowMessage('Дані вигружені у файл');
  //SaveDBGridEhToExportFile(TDBGridEhExportAsOLEXLS, DBGridEh1, 'C:\1.xls', TRUE);
 
 end;
@@ -408,6 +432,14 @@ begin  //   Загрузка данних про вибивших клієнтів
   end
   else
     ShowMessage('Не вдала спроба імпорту');
+end;
+
+
+
+procedure TfrmAnalitic.panTopDblClick(Sender: TObject);
+begin
+  inherited;
+DM.qAnaliticAll.Active := true;
 end;
 
 end.

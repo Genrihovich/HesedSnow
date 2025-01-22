@@ -361,6 +361,17 @@ inherited frmAnalitic: TfrmAnalitic
       object RowDetailData: TRowDetailPanelControlEh
       end
     end
+    object DBGridEh2: TDBGridEh
+      Left = 24
+      Top = 336
+      Width = 977
+      Height = 268
+      DataSource = DM.dsCurators
+      DynProps = <>
+      TabOrder = 1
+      object RowDetailData: TRowDetailPanelControlEh
+      end
+    end
   end
   object panTop: TsPanel [1]
     Left = 0
@@ -369,6 +380,7 @@ inherited frmAnalitic: TfrmAnalitic
     Height = 33
     Align = alTop
     TabOrder = 1
+    OnDblClick = panTopDblClick
     DesignSize = (
       1125
       33)
