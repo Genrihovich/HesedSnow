@@ -27,6 +27,7 @@ procedure InsertCustomRowIntoNewTable(s, table_out, table_in: String);
 // получить список всех столбцов таблицы
 function GetColumnNames(ADOTable: TADOTable): TStrings;
 
+
 implementation
 
 uses uDataModul, uMyExcel, uMyProcedure, uMainForm, uFrameVidomist;
@@ -748,5 +749,7 @@ begin
   end;
  ADOTable.Close;
 end;
+
+
 
 end.
