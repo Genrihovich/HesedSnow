@@ -17,7 +17,7 @@ inherited frmUtils: TfrmUtils
     Font.Style = []
   end
   object sLabel1: TsLabel [1]
-    Left = 25
+    Left = 13
     Top = 303
     Width = 229
     Height = 13
@@ -60,7 +60,7 @@ inherited frmUtils: TfrmUtils
   object lbFirdParam: TsLabel [5]
     Left = 216
     Top = 591
-    Width = 145
+    Width = 129
     Height = 13
     Alignment = taCenter
     Caption = #1055#1086' '#1103#1082#1086#1084#1091' '#1087#1086#1083#1102' '#1087#1077#1088#1077#1074#1110#1088#1082#1072
@@ -70,7 +70,7 @@ inherited frmUtils: TfrmUtils
   object sBitBtn1: TsBitBtn [6]
     Left = 3
     Top = 271
-    Width = 201
+    Width = 257
     Height = 25
     Caption = #1087#1086#1095#1072#1090#1080' '#1087#1086#1096#1091#1082
     TabOrder = 0
@@ -153,13 +153,21 @@ inherited frmUtils: TfrmUtils
     Caption = #1055#1077#1088#1077#1074#1110#1088#1082#1072' '#1085#1072' '#1076#1074#1110#1081#1085#1080#1082#1110#1074
     TabOrder = 6
   end
+  object chbCampare: TsCheckBox [13]
+    Left = 3
+    Top = 608
+    Width = 189
+    Height = 15
+    Caption = #1055#1077#1088#1077#1074#1110#1088#1082#1072' '#1057#1091#1084#1080' '#1090#1072' '#1058#1080#1087#1091' '#1076#1086#1093#1086#1076#1072
+    TabOrder = 7
+  end
   inherited sFrameAdapter1: TsFrameAdapter
     Left = 232
     Top = 8
   end
   object acList: TActionList
-    Left = 282
-    Top = 451
+    Left = 10
+    Top = 219
     object acBtnPerevPoliv: TAction
       AutoCheck = True
       Caption = #1055#1077#1088#1077#1074#1110#1088#1082#1072' '#1074#1110#1076#1087#1086#1074#1110#1076#1085#1086#1089#1090#1110' '#1087#1086#1083#1110#1074

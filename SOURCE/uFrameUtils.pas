@@ -4,13 +4,13 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes,
+  System.Classes, System.StrUtils,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   uFrameCustom,
   sFrameAdapter, Vcl.ComCtrls, sMemo, Vcl.Buttons, sBitBtn, Vcl.Grids,
   JvExGrids, JvStringGrid, Data.DB, Vcl.DBGrids, sRichEdit, ShellAPI,
   System.Generics.Collections, sListView, sListBox, sCheckListBox, sLabel,
-  System.Actions, Vcl.ActnList;
+  System.Actions, Vcl.ActnList, sCheckBox;
 
 type
   TfrmUtils = class(TCustomInfoFrame)
@@ -30,6 +30,7 @@ type
     btnDviniky: TsBitBtn;
     lbFirdParam: TsLabel;
     acBtnDviynik: TAction;
+    chbCampare: TsCheckBox;
     procedure sBitBtn1Click(Sender: TObject);
     procedure btnKillNumberClick(Sender: TObject);
     procedure lbFirstParamDragOver(Sender, Source: TObject; X, Y: Integer;
@@ -66,13 +67,11 @@ procedure TfrmUtils.AfterCreation;
 begin
   inherited;
   DragAcceptFiles(Handle, true);
-
 end;
 
 procedure TfrmUtils.BeforeDestruct;
 begin
   DragAcceptFiles(Handle, False);
-
 end;
 
 procedure TfrmUtils.acBtnPerevPolivUpdate(Sender: TObject);
@@ -268,6 +267,10 @@ begin
   DragQueryFile(h, 0, pchr, maxlen);
   fname := string(pchr);
 
+  lbFirstParam.Caption := '1-й параметр';
+  lbSecondParam.Caption :='2-й параметр';
+  chbCampare.Checked := False;
+
   if lowercase(extractfileext(fname)) = '.xlsx' then
   begin
     lwColumn.Items.Clear;
@@ -335,6 +338,7 @@ var
   cols, raws, i, z, m: Integer;
   CollectionNameExcelColumn: TDictionary<string, Integer>;
   ColumnNameExcel, value1, param1, value2, param2, fioBD, jdcBD: String;
+  SumExcel, typeDohod, tDohodBD: String;
 begin // ---------- ПОрівняти поля ---------
   try
     with myForm, DM do
@@ -424,6 +428,36 @@ begin // ---------- ПОрівняти поля ---------
 
               mOutSpisok.Lines.Add('');
             end;
+
+            // проверка формата стоимости и типа дохода
+            if chbCampare.Checked then
+            begin
+             // ---- Сума ----
+             SumExcel := MyExcel.Cells
+              [m, StrToInt(CollectionNameExcelColumn.Items['Сумма'].ToString)].value;
+
+               if AnsiContainsStr(SumExcel, ',') then
+               begin //Запятая есть!
+                SumExcel := SumExcel.Replace(',', '.');
+                MyExcel.Cells[m, 4].value := SumExcel;
+               end;
+
+             // тип дохода
+             typeDohod := MyExcel.Cells
+              [m, StrToInt(CollectionNameExcelColumn.Items['Тип дохода'].ToString)].value;
+
+              // поиск значения поля в таблице
+             tDohodBD := SearchPoziciyString('VidDohod', 'TypeDohod', typeDohod, 'TypeDohod');
+             if typeDohod <> tDohodBD then
+             begin
+               mOutSpisok.Lines.Add(m.ToString + ':- Помилка типу доходу: - ' + typeDohod);
+               mOutSpisok.Lines.Add('');
+             end;
+            end;
+
+                MyExcel.Application.DisplayAlerts := False;
+                uMyExcel.SaveWorkBook(lbFileName.Caption, 1);
+
             Inc(m);
             // Application.ProcessMessages;
             Sleep(25);

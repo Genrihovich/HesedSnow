@@ -26,7 +26,8 @@ function ImportExcelToUniTable(fName, table: string): boolean;
 procedure InsertCustomRowIntoNewTable(s, table_out, table_in: String);
 // получить список всех столбцов таблицы
 function GetColumnNames(ADOTable: TADOTable): TStrings;
-
+// сравниваем значение с значением из БД
+//function CampareDataWithBD(ValueJDC, ValueFIO): boolean;
 
 implementation
 

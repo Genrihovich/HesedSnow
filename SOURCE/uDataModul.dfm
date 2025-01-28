@@ -463,4 +463,10 @@ object DM: TDM
     Left = 264
     Top = 120
   end
+  object tVidDohod: TADOTable
+    Connection = myConnection
+    TableName = 'VidDohod'
+    Left = 320
+    Top = 64
+  end
 end

@@ -69,6 +69,7 @@ type
     UniDataSource1: TUniDataSource;
     dsCurators: TDataSource;
     qCurators: TADOQuery;
+    tVidDohod: TADOTable;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }
