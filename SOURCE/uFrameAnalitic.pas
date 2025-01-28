@@ -68,6 +68,7 @@ var
   s: String;
 begin
   inherited;
+  myForm.statusBar.Panels[1].Text := '0';
 
   s := sStoreUtils.ReadIniString('NameRollOut', 'Uchastniky', IniName);
   if s <> '' then
@@ -130,7 +131,7 @@ begin
   // ----------------------------- регионы ----------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"")) ' +
       'GROUP BY Uchastniky.Куратор;';
@@ -157,7 +158,7 @@ begin
   // -------------------------------- ЖН ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.ЖН)="ВЕРНО")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -172,7 +173,7 @@ begin
   // -------------------------------- НЖН ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.ЖН)="НЕВЕРНО")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -187,7 +188,7 @@ begin
   // -------------------------------- ВПО ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Беженец/ВПЛ])="Кризис 2022")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -202,7 +203,7 @@ begin
   // -------------------------------- HH ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Дополнительные параметры]) like"%Новые нуждающиеся%")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -217,7 +218,7 @@ begin
   // ------------------------------ КЛІЕНТ ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%Клиент Хеседа%")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -232,7 +233,7 @@ begin
   // -------------------------------- діти 0-17 ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Возраст) Between 0 And 17)) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -247,7 +248,7 @@ begin
   // ------------------------------ CI ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%CI%")) ' +
       'GROUP BY Uchastniky.Куратор;';
@@ -262,7 +263,7 @@ begin
   // ------------------------------ Інвалідність----------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Инвалидность)="Да")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -277,7 +278,7 @@ begin
   // ------------------------------ Національність --------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Еврейское происхождение])="Да")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -292,7 +293,7 @@ begin
   // ------------------------------ Патронажні ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%Патронажный работник%")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -307,7 +308,7 @@ begin
   // ------------------------------ Співробітники ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"" ' +
       'And (Uchastniky.[Тип клиента (для поиска)]) Like "%Сотр%" ' +
@@ -327,7 +328,7 @@ begin
   // ------------------------------ Чол ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Пол)="Мужской")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -342,7 +343,7 @@ begin
   // ------------------------------ Жін ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Пол)="Женский")) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -357,7 +358,7 @@ begin
   // ------------------------------ 66-75 ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Возраст) Between 66 And 75)) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -372,7 +373,7 @@ begin
   // ------------------------------ 76-85 ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Возраст) Between 76 And 85)) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -387,7 +388,7 @@ begin
   // ------------------------------ 86+ ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.Возраст) Between 86 And 185)) '
       + 'GROUP BY Uchastniky.Куратор;';
@@ -402,7 +403,7 @@ begin
   // ------------------------------ волонтери ------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count(Uchastniky.[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)]) Like "%Волонтер%")) ' +
       'GROUP BY Uchastniky.Куратор;';
@@ -417,7 +418,7 @@ begin
   // -------------------------------- Получають патронаж ---------------------------------
   try
     sqlText :=
-      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации]) AS [Count-ФИО] '
+      'SELECT Uchastniky.Куратор, Count([Uchastniky].[Код организации JDC]) AS [Count-ФИО] '
       + 'FROM Uchastniky ' +
       'WHERE (((Uchastniky.[Тип клиента (для поиска)])<>"") AND ((Uchastniky.[Получает патронаж])="верно")) '
       + 'GROUP BY Uchastniky.Куратор;';

@@ -6,7 +6,7 @@ uses
   ComObj, ActiveX, Variants, Windows, Messages, SysUtils, Classes, Vcl.Dialogs,
   System.UITypes, JvStringGrid, sComboBox, DateUtils, sCheckBox, sScrollBox,
   Vcl.ExtCtrls, mimemess, mimepart, smtpsend, sLabel, Data.Win.ADODB,
-  System.Character, DBGridEh,
+  System.Character, DBGridEh, Vcl.Forms,
   System.Generics.Collections, Winapi.ShellAPI, Vcl.Controls;
 
 // заполнение комбобокса месяцами
@@ -835,6 +835,7 @@ begin
           ProgressBar.Max := n;
           ProgressBar.Position := 1;
 
+
           // очищаем таблицу если надо
           if cleantabl = True then
             CleanOutTable(tabl);
@@ -862,8 +863,12 @@ begin
                     .ToString)].value;
                 end
                 else
+                begin
                   ShowMessage('Такого поля, як - ' + s +
                     ' не існуе в Базі Данних');
+                    Break;
+                end;
+                  
 
               except
                 on E: Exception do
@@ -877,9 +882,11 @@ begin
 
             MyTable.Post;
             Inc(m);
-            // Application.ProcessMessages;
+
             Sleep(25);
             ProgressBar.Position := m;
+            statusBar.Panels[1].Text := m.ToString;
+            Application.ProcessMessages;
           end;
 
           Result := True;
@@ -893,6 +900,7 @@ begin
       MyTableColumn.Free;
       MyTable.Active := False;
       myForm.ProgressBar.Visible := False;
+      myForm.statusBar.Panels[1].Text := '0';
       // DM.qUslugy.Active := false;
       // DM.qUslugy.Active := true;
     end;
@@ -908,6 +916,7 @@ begin
       CollectionNameTable.Free;
       MyTableColumn.Free;
       myForm.ProgressBar.Visible := False;
+      myForm.statusBar.Panels[1].Text := '0';
     end;
   end;
 end;
