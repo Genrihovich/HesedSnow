@@ -27,6 +27,8 @@ function isDesimal(): String;
 function ParseStringUpakovka(s: string): String;
 // подгонка ширині колонок
 procedure AutoStringGridWidth(StringGrid: TJvStringGrid);
+// очистить StringGrid
+procedure CleanStringGrid(StringGrid: TJvStringGrid; fixCol: boolean);
 
 function RazdelenieIO(IO: String; ind: Integer): String;
 // сколько слов в строке
@@ -835,7 +837,6 @@ begin
           ProgressBar.Max := n;
           ProgressBar.Position := 1;
 
-
           // очищаем таблицу если надо
           if cleantabl = True then
             CleanOutTable(tabl);
@@ -866,9 +867,8 @@ begin
                 begin
                   ShowMessage('Такого поля, як - ' + s +
                     ' не існуе в Базі Данних');
-                    Break;
+                  break;
                 end;
-                  
 
               except
                 on E: Exception do
@@ -1192,6 +1192,43 @@ begin
     end;
   end;
 
+end;
+
+// очистить StringGrid
+procedure CleanStringGrid(StringGrid: TJvStringGrid; fixCol: boolean);
+var
+  i, j: Integer;
+begin
+  with StringGrid do
+  begin
+    if fixCol = True then
+    begin
+      for i := 0 to ColCount - 1 do
+      begin
+        // for j:=FixedRows to RowCount-1 do
+        for j := 0 to RowCount - 1 do
+        begin
+          Cells[i, j] := '';
+          Application.ProcessMessages;
+        end;
+      end;
+    end
+    else
+    begin
+      for i := FixedCols to ColCount - 1 do
+      begin
+        // for j:=FixedRows to RowCount-1 do
+        for j := 1 to RowCount - 1 do
+        begin
+          Cells[i, j] := '';
+        end;
+      end;
+    end;
+
+  end;
+  StringGrid.ColCount := 2;
+  StringGrid.RowCount := 1;
+  Application.ProcessMessages;
 end;
 
 end.

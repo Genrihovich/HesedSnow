@@ -24,8 +24,7 @@ object frmMenu: TfrmMenu
     Width = 191
     Height = 25
     Align = alTop
-    Caption = #1055#1086#1076#1072#1090#1082#1080' '#1085#1072' '#1087#1086#1089#1083#1091#1075#1080
-    Enabled = False
+    Caption = #1050#1083#1091#1073#1080
     TabOrder = 1
     OnClick = btnNalogyClick
     ShowFocus = False
@@ -112,8 +111,6 @@ object frmMenu: TfrmMenu
     Caption = #1040#1085#1072#1083#1110#1090#1080#1082#1072' '#1079#1072' '#1088#1110#1082
     TabOrder = 8
     OnClick = btnAnalitikClick
-    ExplicitLeft = 6
-    ExplicitTop = 228
   end
   object sFrameAdapter1: TsFrameAdapter
     Left = 160

@@ -48,6 +48,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+
     myFrame: TFrame;
 
     // --------------------
@@ -73,7 +74,7 @@ implementation
 
 {$R *.dfm}
 
-uses uMenu, uDataModul, uFrameVidomist, uMyProcedure;
+uses uMenu, uDataModul, uFrameVidomist, uMyProcedure, uFrameClubs;
 
 { TForm2 }
 
@@ -180,5 +181,8 @@ begin
   if CurrentFrame <> nil then
     CurrentFrame.AfterCreation;
 end;
+
+
+
 
 end.

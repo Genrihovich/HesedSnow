@@ -8,7 +8,7 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, uFrameCustom,
   Vcl.StdCtrls, DateUtils, Data.DB, sComboBox, System.Actions, Vcl.ActnList,
   Vcl.Grids, JvExGrids, JvStringGrid, Vcl.DBGrids, acDBGrid, Vcl.ExtCtrls,
-  Vcl.Buttons, sBitBtn, sPanel, sFrameAdapter;
+  Vcl.Buttons, sBitBtn, sPanel, sFrameAdapter, sCheckBox;
 
 type
   TfrmFrameDavayPodkl = class(TCustomInfoFrame)
@@ -26,6 +26,8 @@ type
     btnZahody: TsBitBtn;
     cbMonth: TsComboBox;
     abtnDounloadZvitFile: TAction;
+    chbAllDownloadZvFile: TsCheckBox;
+    sBitBtn1: TsBitBtn;
     procedure btnDownloadUslugyClick(Sender: TObject);
     procedure btnOtchetClick(Sender: TObject);
     procedure abtnCreateExcelUpdate(Sender: TObject);
@@ -33,8 +35,10 @@ type
     procedure btnZahodyClick(Sender: TObject);
     procedure abtnDounloadZvitFileUpdate(Sender: TObject);
     procedure cbMonthChange(Sender: TObject);
+    procedure sBitBtn1Click(Sender: TObject);
   private
     { Private declarations }
+    listName : String;  //имя листа екселя
   public
     { Public declarations }
     procedure AfterCreation; override;
@@ -132,12 +136,15 @@ begin
     end;
   end;
 
+  if listName = '' then listName := 'NoName';
+
+
   DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
   if not DirectoryExists('DirectoryNow') then
     ForceDirectories(DirectoryNow);
 
   FileNameS := DirectoryNow + 'Клубные мероприятия_' +
-    FormatDateTime('dd.mm.yyyy', Now) + '.xlsx';
+    FormatDateTime('dd.mm.yyyy', Now) + '_' + listName + '.xlsx';
 
   uMyExcel.SaveWorkBook(FileNameS, 1);
 
@@ -161,246 +168,6 @@ begin
   // DBGridEhVedomist.DataSource := DM.dsVedomist;
   btnDownloadUslugy.Kind := bkAll;
   btnDownloadUslugy.Caption := 'Файл з послугами завантажено';
-end;
-
-procedure TfrmFrameDavayPodkl.btnOtchetClick(Sender: TObject);
-var
-  colfix, col, m, n, z, k, l: Integer;
-  Data, Tema: string;
-  a, b, t,y, c: string;
-  d, e: string;
-  FileNameS, DirectoryNow: String;
-  Zahods: TStringList;
-begin
-  inherited;
-  try
-
-    DM.tTemaDavayPodkl.Active := false;
-    DM.tTemaDavayPodkl.Active := true;
-
-    colfix := 100; // далее запомнит номер столбца для JDCID
-
-    if uMyExcel.RunExcel(false, false) = true then
-      // проверка на инсталл и запуск Excel
-      myForm.OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
-    if not myForm.OpenDialog.Execute then
-      Exit;
-
-    // открываем книгу Excel
-    if uMyExcel.OpenWorkBook(myForm.OpenDialog.FileName, false) then
-
-    begin
-
-      // MyExcel.Workbooks[1].Worksheets.Count; //кол-во листов в документе
-      myForm.ProgressBar.Visible := true;
-      MyExcel.ActiveWorkBook.Sheets[1];
-
-      // последняя заполненная колонка
-      col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
-
-      m := 10; // начинаем считывание со 9-й строки, оставляя заголовок колонки
-      // последняя заполненная строка
-      n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
-
-      n := n + 1;
-      with DM, myForm do
-      begin
-        qTemaDP.Active := false;
-        CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
-        l := 1; // счетчик строк грида(номер строки для грида)
-
-        ProgressBar.Min := 0;
-        ProgressBar.Max := n;
-        ProgressBar.Position := 1;
-
-        while m <> n do // цикл  по строкам EXCEL
-        begin
-          for z := 1 to col do // цикл по столбцам
-          begin
-            a := Trim(MyExcel.Cells[m, z].value);
-            b := MyExcel.Cells[m, z + 1].value;
-            t:= Trim(MyExcel.Cells[m, z+2].value);
-            y:= MyExcel.Cells[m, z + 3].value;
-
-            // ================== 1 =====================
-            if (a = 'Дата') then
-            begin
-              Data := MyExcel.Cells[m, z + 1].value;
-              if Data <> '' then
-              begin
-               // проверить или входит в заданный диапазон дата
-                if not isDateBetween(begin_date, end_date, Data) then
-                  Data := RecoveryDate(begin_date, Data);
-
-                MyExcel.Cells[m, z + 1].NumberFormat := '@';
-                MyExcel.Cells[m, z + 1].value := Data;
-
-              end;
-
-
-            end;
-
-            if (t = 'Тема') then
-              // проверить на кавычки и убрать пробелы лишние
-              Tema := Trim(ReplaceChar(MyExcel.Cells[m, z + 3].value));
-
-
-
-            if (Data <> '') and (Tema <> '') then
-            begin
-              tTemaDavayPodkl.Insert;
-              tTemaDavayPodkl.FieldByName('Data').AsString := Data;
-              tTemaDavayPodkl.FieldByName('Tema').AsString := Tema;
-              tTemaDavayPodkl.Post;
-              Data := '';
-              Tema := '';
-              Application.ProcessMessages;
-//            end
-//            else // если нет даты или темы
-//            begin
-//              ShowMessage('Не заповнені дата або тєма заходів');
-//              CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
-//              DM.tTemaDavayPodkl.Active := false;
-//              StopExcel;
-//              ProgressBar.Position := 1;
-//              ProgressBar.Visible := false;
-//              Exit;
-            end;
-
-
-
-
-
-
-
-            c := MyExcel.Cells[m, colfix].value;
-
-            if (MyExcel.Cells[m, colfix].value <> '') then
-            begin
-              // Добавление строки
-              StringGrid.RowCount := StringGrid.RowCount + 1;
-
-              d := MyExcel.Cells[m, colfix].value;
-              e := MyExcel.Cells[m, colfix + 1].value;
-
-              StringGrid.Cells[0, l] := l.ToString; // №п/п
-              StringGrid.Cells[1, l] := d; // JDCID
-              StringGrid.Cells[2, l] := e; // ФИО
-
-              for k := 0 to DM.qTemaDP.RecordCount - 1 do
-              begin
-                StringGrid.Cells[k + 3, l] :=
-                  MyExcel.Cells[m, k + colfix + 2].value;
-                Application.ProcessMessages;
-              end;
-
-              AutoStringGridWidth(StringGrid);
-              Inc(l); // следующая строка
-              ProgressBar.Position := m;
-              Break;
-            end;
-
-
-            // ================= 2 ================
-
-            // запоминаем индекс колонки JDC ID
-            if (a = 'JDC ID') and (b = 'ФИО') then
-            begin
-              colfix := z;
-
-              // Заголовки грида
-              StringGrid.RowCount := 1;
-              DM.qTemaDP.Active := true;
-              StringGrid.ColCount := DM.qTemaDP.RecordCount + 3;
-
-              StringGrid.Cells[0, 0] := '№ п/п';
-              StringGrid.Cells[1, 0] := 'JDC ID';
-              StringGrid.Cells[2, 0] := 'ФИО';
-              DM.qTemaDP.First;
-              for k := 0 to DM.qTemaDP.RecordCount - 1 do
-              begin
-                StringGrid.Cells[k + 3, 0] :=
-                  DM.qTemaDP.FieldByName('Data').AsString;
-                DM.qTemaDP.Next;
-                Application.ProcessMessages;
-              end;
-              Break;
-            end;
-            // ==============================================
-            ProgressBar.Position := m;
-          end;
-          Inc(m);
-        end;
-
-        // ============== создаем список новых мероприятий =================
-        with DM do
-        begin
-          tTemaDavayPodkl.Active := false;
-          tTemaDavayPodkl.Active := true;
-          tZahody.Active := true;
-
-          Zahods := TStringList.Create;
-
-          tTemaDavayPodkl.First;
-          for z := 0 to tTemaDavayPodkl.RecordCount - 1 do
-          begin
-            Tema := tTemaDavayPodkl.FieldByName('Tema').AsString;
-
-            qZahody.Active := false;
-            qZahody.SQL.Clear;
-            qZahody.SQL.Add
-              ('select * From Zahody Where  (((Zahody.Мероприятие)="' +
-              Tema + '"))');
-            FileNameS := qZahody.SQL.Text;
-
-            qZahody.Active := true;
-            if qZahody.RecordCount = 0 then
-            begin // если нет мероприятия то внести его в базу и в файл
-              Zahods.Add(Tema);
-              tZahody.Insert;
-              tZahody.FieldByName('Действительно').AsString := 'ВЕРНО';
-              tZahody.FieldByName('Мероприятие').AsString := Tema;
-              tZahody.Post;
-            end;
-            tTemaDavayPodkl.Next;
-          end;
-
-          if Zahods.Count > 0 then
-          // если стринглист не пустой то сохранить в файл
-          begin
-            DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
-            if not DirectoryExists('DirectoryNow') then
-              ForceDirectories(DirectoryNow);
-            FileNameS := DirectoryNow + 'Новые Клубные мероприятия_' +
-              FormatDateTime('dd.mm.yyyy', Now) + '.txt';
-
-            Zahods.SaveToFile(FileNameS);
-          end;
-
-          Zahods.Free;
-          tZahody.Active := false;
-        end;
-
-      end;
-    end;
-
-    MyExcel.Application.DisplayAlerts := false;
-    StopExcel;
-    myForm.ProgressBar.Visible := false;
-    DM.qTemaDP.Active := true;
-
-  except
-    on e: EListError do
-    begin
-      CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
-      DM.tTemaDavayPodkl.Active := false;
-      ShowMessage('Не вірний формат файлу, нема необхідних полів');
-      StopExcel;
-    end;
-  end;
-  btnOtchet.Kind := bkAll;
-  btnOtchet.Caption := 'Звітний файл завантажено';
-
 end;
 
 procedure TfrmFrameDavayPodkl.btnZahodyClick(Sender: TObject);
@@ -508,6 +275,509 @@ begin
   inherited;
   MonthComboBox(cbMonth);
   cbMonth.Text := '';
+end;
+
+procedure TfrmFrameDavayPodkl.btnOtchetClick(Sender: TObject);
+var
+  colfix, col, m, n, z, k, l: Integer;
+  Data, Tema: string;
+  a, b, t, y, c: string;
+  d, e: string;
+  FileNameS, DirectoryNow: String;
+  Zahods: TStringList;
+begin
+  inherited;
+  try
+
+    DM.tTemaDavayPodkl.Active := false;
+    DM.tTemaDavayPodkl.Active := true;
+
+    colfix := 100; // далее запомнит номер столбца для JDCID
+
+    if uMyExcel.RunExcel(false, false) = true then
+      // проверка на инсталл и запуск Excel
+      myForm.OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
+    if not myForm.OpenDialog.Execute then
+      Exit;
+
+    // открываем книгу Excel
+    if uMyExcel.OpenWorkBook(myForm.OpenDialog.FileName, false) then
+
+    begin
+
+      // MyExcel.Workbooks[1].Worksheets.Count; //кол-во листов в документе
+      myForm.ProgressBar.Visible := true;
+      MyExcel.ActiveWorkBook.Sheets[1];
+
+      // последняя заполненная колонка
+      col := MyExcel.ActiveCell.SpecialCells($000000B).Column;
+
+      m := 10; // начинаем считывание со 9-й строки, оставляя заголовок колонки
+      // последняя заполненная строка
+      n := MyExcel.ActiveCell.SpecialCells($000000B).Row;
+
+      n := n + 1;
+      with DM, myForm do
+      begin
+        qTemaDP.Active := false;
+        CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
+        l := 1; // счетчик строк грида(номер строки для грида)
+
+        ProgressBar.Min := 0;
+        ProgressBar.Max := n;
+        ProgressBar.Position := 1;
+
+        while m <> n do // цикл  по строкам EXCEL
+        begin
+          for z := 1 to col do // цикл по столбцам
+          begin
+            a := Trim(MyExcel.Cells[m, z].value);
+            b := MyExcel.Cells[m, z + 1].value;
+            t := Trim(MyExcel.Cells[m, z + 2].value);
+            y := MyExcel.Cells[m, z + 3].value;
+
+            // ================== 1 =====================
+            if (a = 'Дата') then
+            begin
+              Data := MyExcel.Cells[m, z + 1].value;
+              if Data <> '' then
+              begin
+                // проверить или входит в заданный диапазон дата
+                if not isDateBetween(begin_date, end_date, Data) then
+                  Data := RecoveryDate(begin_date, Data);
+
+                MyExcel.Cells[m, z + 1].NumberFormat := '@';
+                MyExcel.Cells[m, z + 1].value := Data;
+
+              end;
+
+            end;
+
+            if (t = 'Тема') then
+              // проверить на кавычки и убрать пробелы лишние
+              Tema := Trim(ReplaceChar(MyExcel.Cells[m, z + 3].value));
+
+            if (Data <> '') and (Tema <> '') then
+            begin
+              tTemaDavayPodkl.Insert;
+              tTemaDavayPodkl.FieldByName('Data').AsString := Data;
+              tTemaDavayPodkl.FieldByName('Tema').AsString := Tema;
+              tTemaDavayPodkl.Post;
+              Data := '';
+              Tema := '';
+              Application.ProcessMessages;
+              // end
+              // else // если нет даты или темы
+              // begin
+              // ShowMessage('Не заповнені дата або тєма заходів');
+              // CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
+              // DM.tTemaDavayPodkl.Active := false;
+              // StopExcel;
+              // ProgressBar.Position := 1;
+              // ProgressBar.Visible := false;
+              // Exit;
+            end;
+
+            c := MyExcel.Cells[m, colfix].value;
+
+            if (MyExcel.Cells[m, colfix].value <> '') then
+            begin
+              // Добавление строки
+              StringGrid.RowCount := StringGrid.RowCount + 1;
+
+              d := MyExcel.Cells[m, colfix].value;
+              e := MyExcel.Cells[m, colfix + 1].value;
+
+              StringGrid.Cells[0, l] := l.ToString; // №п/п
+              StringGrid.Cells[1, l] := d; // JDCID
+              StringGrid.Cells[2, l] := e; // ФИО
+
+              for k := 0 to DM.qTemaDP.RecordCount - 1 do
+              begin
+                StringGrid.Cells[k + 3, l] :=
+                  MyExcel.Cells[m, k + colfix + 2].value;
+                Application.ProcessMessages;
+              end;
+
+              AutoStringGridWidth(StringGrid);
+              Inc(l); // следующая строка
+              ProgressBar.Position := m;
+              Break;
+            end;
+
+
+            // ================= 2 ================
+
+            // запоминаем индекс колонки JDC ID
+            if (a = 'JDC ID') and (b = 'ФИО') then
+            begin
+              colfix := z;
+
+              // Заголовки грида
+              StringGrid.RowCount := 1;
+              DM.qTemaDP.Active := true;
+              StringGrid.ColCount := DM.qTemaDP.RecordCount + 3;
+
+              StringGrid.Cells[0, 0] := '№ п/п';
+              StringGrid.Cells[1, 0] := 'JDC ID';
+              StringGrid.Cells[2, 0] := 'ФИО';
+              DM.qTemaDP.First;
+              for k := 0 to DM.qTemaDP.RecordCount - 1 do
+              begin
+                StringGrid.Cells[k + 3, 0] :=
+                  DM.qTemaDP.FieldByName('Data').AsString;
+                DM.qTemaDP.Next;
+                Application.ProcessMessages;
+              end;
+              Break;
+            end;
+            // ==============================================
+            ProgressBar.Position := m;
+            Application.ProcessMessages;
+          end;
+          Inc(m);
+        end;
+
+        // ============== создаем список новых мероприятий =================
+        with DM do
+        begin
+          tTemaDavayPodkl.Active := false;
+          tTemaDavayPodkl.Active := true;
+          tZahody.Active := true;
+
+          Zahods := TStringList.Create;
+
+          tTemaDavayPodkl.First;
+          for z := 0 to tTemaDavayPodkl.RecordCount - 1 do
+          begin
+            Tema := tTemaDavayPodkl.FieldByName('Tema').AsString;
+
+            qZahody.Active := false;
+            qZahody.SQL.Clear;
+            qZahody.SQL.Add
+              ('select * From Zahody Where  (((Zahody.Мероприятие)="' +
+              Tema + '"))');
+            FileNameS := qZahody.SQL.Text;
+
+            qZahody.Active := true;
+            if qZahody.RecordCount = 0 then
+            begin // если нет мероприятия то внести его в базу и в файл
+              Zahods.Add(Tema);
+              tZahody.Insert;
+              tZahody.FieldByName('Действительно').AsString := 'ВЕРНО';
+              tZahody.FieldByName('Мероприятие').AsString := Tema;
+              tZahody.Post;
+            end;
+            tTemaDavayPodkl.Next;
+          end;
+
+          if Zahods.Count > 0 then
+          // если стринглист не пустой то сохранить в файл
+          begin
+            DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
+            if not DirectoryExists('DirectoryNow') then
+              ForceDirectories(DirectoryNow);
+            FileNameS := DirectoryNow + 'Новые Клубные мероприятия_' +
+              FormatDateTime('dd.mm.yyyy', Now) + '.txt';
+
+            Zahods.SaveToFile(FileNameS);
+          end;
+
+          Zahods.Free;
+          tZahody.Active := false;
+        end;
+
+      end;
+    end;
+
+    MyExcel.Application.DisplayAlerts := false;
+    StopExcel;
+    myForm.ProgressBar.Visible := false;
+    DM.qTemaDP.Active := true;
+
+  except
+    on e: EListError do
+    begin
+      CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
+      DM.tTemaDavayPodkl.Active := false;
+      ShowMessage('Не вірний формат файлу, нема необхідних полів');
+      StopExcel;
+    end;
+  end;
+  btnOtchet.Kind := bkAll;
+  btnOtchet.Caption := 'Звітний файл завантажено';
+
+end;
+
+procedure TfrmFrameDavayPodkl.sBitBtn1Click(Sender: TObject);
+var
+  colfix, lCount, i, j, cols, raws, l, z, k: Integer;
+
+  a, b, t, y, c, d, e: string;
+  Data, Tema: string;
+  Zahods: TStringList;
+    FileNameS, DirectoryNow: String;
+
+begin
+  try
+    with DM, myForm do
+    begin
+      // Пересчитаем данніе таблицы
+      tTemaDavayPodkl.Active := false;
+      tTemaDavayPodkl.Active := true;
+
+
+      // Создадим список для новых мероприятий
+      Zahods := TStringList.Create;
+
+      // проверка на инсталл и запуск Excel
+      if uMyExcel.RunExcel(false, false) = true then
+
+        OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
+      if not OpenDialog.Execute then
+        Exit;
+
+      // открываем книгу Excel
+      if uMyExcel.OpenWorkBook(myForm.OpenDialog.FileName, true) then
+      begin
+        // кол-во листов в документе
+        lCount := MyExcel.Workbooks[1].Worksheets.Count;
+        ProgressBar.Visible := true;
+        // проходимся по листам екселя
+        for i := 1 to lCount do
+        begin
+      colfix := 100; // далее запомнит номер столбца для JDCID
+
+        CleanStringGrid(StringGrid, true);
+          //запоминаем имя листа
+        //  listName := MyExcel.Workbooks[1].Worksheets[i].name;
+          MyExcel.Workbooks[1].Worksheets[i].Activate;
+          listName := MyExcel.Workbooks[1].Worksheets[i].name;
+          // последняя заполненная колонка
+          cols := MyExcel.ActiveCell.SpecialCells($000000B).Column;
+          // последняя заполненная строка
+          raws := MyExcel.ActiveCell.SpecialCells($000000B).Row;
+
+
+
+             qTemaDP.Active := false;
+            CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
+         //   qTemaDP.Active := true;
+
+          if not((cols = 1) and (raws = 1)) then // если не пустой лист
+          begin
+
+
+
+
+
+            // ---------- Данные есть на листе -------------
+
+          //=============================================================
+            j := 9; // начинаем считывание со 9-й строки, оставляя заголовок колонки
+          //=============================================================
+
+            raws := raws + 1;
+
+
+
+            l := 1; // счетчик строк грида(номер строки для грида)
+
+            ProgressBar.Min := 0;
+            ProgressBar.Max := raws;
+            ProgressBar.Position := 1;
+
+            while j <> raws do // цикл  по строкам EXCEL
+            begin
+
+
+              for z := 1 to cols do // цикл по столбцам
+              begin
+
+                // снимаем данные в строке j
+                a := Trim(MyExcel.Cells[j, z].value);
+                b := MyExcel.Cells[j, z + 1].value;
+                t := Trim(MyExcel.Cells[j, z + 2].value);
+                y := MyExcel.Cells[j, z + 3].value;
+
+                // ================== 1 часть - мероприятия ==================
+                if (a = 'Дата') then
+                begin
+                  Data := MyExcel.Cells[j, z + 1].value;
+                  if Data <> '' then
+                  begin
+                    // проверить или входит в заданный диапазон дата
+                    if not isDateBetween(begin_date, end_date, Data) then
+                      Data := RecoveryDate(begin_date, Data);
+
+                    MyExcel.Cells[j, z + 1].NumberFormat := '@';
+                    MyExcel.Cells[j, z + 1].value := Data;
+                  end;
+
+                end;
+
+                if (t = 'Тема') then
+                  // проверить на кавычки и убрать пробелы лишние
+                  Tema := Trim(ReplaceChar(MyExcel.Cells[j, z + 3].value));
+
+                  //вносим все темы с датами
+                if (Data <> '') and (Tema <> '') then
+                begin
+                  tTemaDavayPodkl.Insert;
+                  tTemaDavayPodkl.FieldByName('Data').AsString := Data;
+                  tTemaDavayPodkl.FieldByName('Tema').AsString := Tema;
+                  tTemaDavayPodkl.Post;
+                  Data := '';
+                  Tema := '';
+                end;
+
+
+
+
+
+                 c := MyExcel.Cells[j, colfix].value;
+
+                if (MyExcel.Cells[j, colfix].value <> '') then
+                begin
+                  // Добавление строки
+                  StringGrid.RowCount := StringGrid.RowCount + 1;
+
+                  d := MyExcel.Cells[j, colfix].value;
+                  e := MyExcel.Cells[j, colfix + 1].value;
+
+                  StringGrid.Cells[0, l] := l.ToString; // №п/п
+                  StringGrid.Cells[1, l] := d; // JDCID
+                  StringGrid.Cells[2, l] := e; // ФИО
+                  Application.ProcessMessages;
+
+                  // проставка посещение клиентов
+                  for k := 0 to DM.qTemaDP.RecordCount - 1 do
+                  begin
+                    StringGrid.Cells[k + 3, l] :=
+                      MyExcel.Cells[j, k + colfix + 2].value;
+                    Application.ProcessMessages;
+                  end;
+
+                  AutoStringGridWidth(StringGrid);
+                  Inc(l); // следующая строка
+                  ProgressBar.Position := j;
+                  statusBar.Panels[1].Text := j.ToString;
+                  Break;
+                end;
+
+                // ================= 2 часть табл клиентов ================
+                // запоминаем индекс колонки JDC ID
+                if (a = 'JDC ID') and (b = 'ФИО') then
+                begin
+                  colfix := z;
+
+                  // Заголовки грида
+                  StringGrid.RowCount := 1;
+                  qTemaDP.Active := true;
+                  StringGrid.ColCount := qTemaDP.RecordCount + 3;
+
+                  StringGrid.Cells[0, 0] := '№ п/п';
+                  StringGrid.Cells[1, 0] := 'JDC ID';
+                  StringGrid.Cells[2, 0] := 'ФИО';
+                  DM.qTemaDP.First;
+
+                  for k := 0 to qTemaDP.RecordCount - 1 do
+                  begin
+                    StringGrid.Cells[k + 3, 0] :=
+                      qTemaDP.FieldByName('Data').AsString;
+                    qTemaDP.Next;
+                    Application.ProcessMessages;
+                  end;
+                  Break;
+                end;
+                // ==============================================
+                ProgressBar.Position := j;
+                statusBar.Panels[1].Text := j.ToString;
+                Application.ProcessMessages;
+              end;
+              Inc(j);
+
+            end;
+
+
+            // ============== создаем список новых мероприятий =================
+              tTemaDavayPodkl.Active := false;
+              tTemaDavayPodkl.Active := true;
+              tZahody.Active := true;
+
+              tTemaDavayPodkl.First;
+              for z := 0 to tTemaDavayPodkl.RecordCount - 1 do
+              begin
+                Tema := tTemaDavayPodkl.FieldByName('Tema').AsString;
+
+                qZahody.Active := false;
+                qZahody.SQL.Clear;
+                qZahody.SQL.Add
+                  ('select * From Zahody Where  (((Zahody.Мероприятие)="' +
+                  Tema + '"))');
+              //  FileNameS := qZahody.SQL.Text;
+
+                qZahody.Active := true;
+                if qZahody.RecordCount = 0 then
+                begin // если нет мероприятия то внести его в базу и в файл
+                  Zahods.Add(Tema);
+                  tZahody.Insert;
+                  tZahody.FieldByName('Действительно').AsString := 'ВЕРНО';
+                  tZahody.FieldByName('Мероприятие').AsString := Tema;
+                  tZahody.Post;
+                end;
+                tTemaDavayPodkl.Next;
+              end;
+
+
+
+
+
+
+
+
+
+
+
+           btnCreateExcelClick(Sender);
+           //===========================================
+
+          end
+          else
+            ShowMessage(listName + ' - Пустий');
+
+        end;
+
+
+
+
+          if Zahods.Count > 0 then
+          // если стринглист не пустой то сохранить в файл
+          begin
+            DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
+            if not DirectoryExists('DirectoryNow') then
+              ForceDirectories(DirectoryNow);
+            FileNameS := DirectoryNow + 'Новые Клубные мероприятия_' +
+              FormatDateTime('dd.mm.yyyy', Now) + '.txt';
+
+            Zahods.SaveToFile(FileNameS);
+          end;
+
+          Zahods.Free;
+          tZahody.Active := false;
+      end;
+    end;
+
+  except
+    on e: Exception do
+    begin
+      CleanOutTable('TemaDavayPodkl'); // обнуляем таблицу
+      DM.tTemaDavayPodkl.Active := false;
+      ShowMessage('Не вірний формат файлу, нема необхідних полів');
+      StopExcel;
+      Zahods.Free;
+    end;
+  end;
 end;
 
 end.

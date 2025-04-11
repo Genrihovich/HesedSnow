@@ -39,8 +39,9 @@ implementation
 
 {$R *.dfm}
 
-uses uFrameVidomist, uMainForm, uFrameSLG, uFrameNalogy, uFrameDavayPodkl,
-  uFrameUtils, uFrameImportBD, uFrameZvitBank, uDohod, uFrameAnalitic;
+uses uFrameVidomist, uMainForm, uFrameSLG, uFrameDavayPodkl,
+  uFrameUtils, uFrameImportBD, uFrameZvitBank, uDohod, uFrameAnalitic,
+  uFrameClubs;
 
 procedure TfrmMenu.btnAnalitikClick(Sender: TObject);
 begin
@@ -64,7 +65,7 @@ end;
 
 procedure TfrmMenu.btnNalogyClick(Sender: TObject);
 begin
-  myForm.CreateNewFrame(TfrmNalogy, Sender);
+  myForm.CreateNewFrame(TfrmClubs, Sender);
 end;
 
 procedure TfrmMenu.btnSLGClick(Sender: TObject);

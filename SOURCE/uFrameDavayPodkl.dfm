@@ -18,7 +18,7 @@ inherited frmFrameDavayPodkl: TfrmFrameDavayPodkl
       Top = 10
       Width = 225
       Height = 25
-      Caption = #1047#1072#1074#1072#1085#1090#1072#1078#1080#1090#1080' '#1092#1072#1081#1083' '#1079' '#1087#1086#1089#1083#1091#1075#1072#1084#1080
+      Caption = #1047#1072#1074#1072#1085#1090#1072#1078#1080#1090#1080' '#1092#1072#1081#1083' '#1079' '#1087#1086#1089#1083#1091#1075#1072#1084#1080' '#1044#1055
       Layout = blGlyphRight
       ModalResult = 12
       NumGlyphs = 2
@@ -29,9 +29,9 @@ inherited frmFrameDavayPodkl: TfrmFrameDavayPodkl
       TextAlignment = taLeftJustify
     end
     object btnOtchet: TsBitBtn
-      Left = 736
+      Left = 784
       Top = 10
-      Width = 225
+      Width = 177
       Height = 25
       Action = abtnDounloadZvitFile
       Anchors = [akTop, akRight]
@@ -56,6 +56,23 @@ inherited frmFrameDavayPodkl: TfrmFrameDavayPodkl
       TabOrder = 3
       Text = 'cbMonth'
       OnChange = cbMonthChange
+    end
+    object chbAllDownloadZvFile: TsCheckBox
+      Left = 696
+      Top = 14
+      Width = 87
+      Height = 15
+      Caption = #1059#1089#1110' '#1074#1082#1083#1072#1076#1082#1080
+      TabOrder = 4
+    end
+    object sBitBtn1: TsBitBtn
+      Left = 564
+      Top = 10
+      Width = 75
+      Height = 25
+      Caption = 'sBitBtn1'
+      TabOrder = 5
+      OnClick = sBitBtn1Click
     end
   end
   object sPanel2: TsPanel [1]
@@ -152,12 +169,12 @@ inherited frmFrameDavayPodkl: TfrmFrameDavayPodkl
     end
   end
   inherited sFrameAdapter1: TsFrameAdapter
-    Left = 560
-    Top = 8
+    Left = 24
+    Top = 72
   end
   object ActionList: TActionList
-    Left = 656
-    Top = 8
+    Left = 16
+    Top = 128
     object abtnCreateExcel: TAction
       Caption = #1057#1090#1074#1086#1088#1080#1090#1080' '#1092#1072#1081#1083's'
       OnExecute = btnCreateExcelClick

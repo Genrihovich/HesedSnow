@@ -217,6 +217,12 @@ begin
             MyExcel.Cells
             [m, StrToInt(CollectionNameTable.Items['JDC ID'].ToString)].value;
 
+            // ФІО Клиент
+           if ((MyExcel.Cells [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value = 'FIO')
+           or
+            (MyExcel.Cells [m, StrToInt(CollectionNameTable.Items['Клиент'].ToString)].value = 'FIO'))
+            then
+
           tVedomost.FieldByName('FIO').AsString :=
             MyExcel.Cells
             [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value;
@@ -598,6 +604,7 @@ end;
   Tabl - таблица
   Pole - поле в котором поиск
   NaNk -  что искать
+  SearchPoziciy('Zahody','Мероприятие',nameMeropr) = false
 }
 function SearchPoziciy(Tabl, pole, NaNk: string): boolean;
 begin

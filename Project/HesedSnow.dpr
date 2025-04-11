@@ -7,7 +7,7 @@ uses
   uMenu in '..\SOURCE\uMenu.pas' {frmMenu: TFrame},
   uFrameVidomist in '..\SOURCE\uFrameVidomist.pas' {frmVidomost: TFrame},
   uFrameSLG in '..\SOURCE\uFrameSLG.pas' {frmSLG: TFrame},
-  uFrameNalogy in '..\SOURCE\uFrameNalogy.pas' {frmNalogy: TFrame},
+  uFrameClubs in '..\SOURCE\uFrameClubs.pas' {frmClubs: TFrame},
   uMyProcedure in '..\SOURCE\uMyProcedure.pas',
   uMyExcel in '..\SOURCE\uMyExcel.pas',
   uDataModul in '..\SOURCE\uDataModul.pas' {DM: TDataModule},
