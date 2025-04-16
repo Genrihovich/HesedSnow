@@ -47,7 +47,7 @@ type
   public
     { Public declarations }
     procedure AfterCreation; override; // Вызывается после создания frame
-    procedure BeforeDestruct; virtual;
+    procedure BeforeDestruct; override;
 
   end;
 

@@ -468,4 +468,10 @@ object DM: TDM
     Left = 320
     Top = 64
   end
+  object tClubUslugy: TADOTable
+    Connection = myConnection
+    TableName = 'ClubUslugy'
+    Left = 272
+    Top = 288
+  end
 end

@@ -70,6 +70,7 @@ type
     dsCurators: TDataSource;
     qCurators: TADOQuery;
     tVidDohod: TADOTable;
+    tClubUslugy: TADOTable;
     procedure DataModuleCreate(Sender: TObject);
   private
     { Private declarations }

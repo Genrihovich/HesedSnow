@@ -58,6 +58,7 @@ procedure TfrmZvitBank.btnImportCardsClick(Sender: TObject);
 var
   myPole: TStringList;
 begin
+  myPole := nil;
   try
     begin
       // создаем список полей
@@ -99,12 +100,10 @@ begin
   propAlterClean.Free;
 end;
 
-
-
 // загрузка данных в таблицы
 procedure TfrmZvitBank.btnDownloadClick(Sender: TObject);
 var
-  s, t: string;
+  s: string;
   i: Integer;
 begin
   with DM do
@@ -140,8 +139,7 @@ end;
 
 procedure TfrmZvitBank.dbGridTempDblClick(Sender: TObject);
 var
-  Column: TColumn;
-  val, temp: String;
+  val: String;
 begin
   val := dbGridTemp.DataSource.DataSet.FieldByName('rep_inn').AsString;
 
@@ -177,10 +175,6 @@ end;
 
 // Сохранить в файл
 procedure TfrmZvitBank.btnSaveFileClick(Sender: TObject);
-var
-  Sheets, ExcelApp: variant;
-  FileNameS, DirectoryNow: String;
-  i, j, k: Integer;
 begin
   inherited;
   //

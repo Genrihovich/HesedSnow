@@ -335,7 +335,7 @@ end;
 
 procedure TfrmUtils.btnPerevPolivClick(Sender: TObject);
 var
-  cols, raws, i, z, m: Integer;
+  cols, raws, z, m: Integer;
   CollectionNameExcelColumn: TDictionary<string, Integer>;
   ColumnNameExcel, value1, param1, value2, param2, fioBD, jdcBD: String;
   SumExcel, typeDohod, tDohodBD: String;
@@ -500,6 +500,7 @@ var
   DuplicatesList: TStringList;
 begin // Пошук двійників
   inherited;
+  CollectionNameExcelColumn := nil;
   try
     // Создаем словарь для проверки дубликатов
     NameDict := TDictionary<string, Integer>.Create;

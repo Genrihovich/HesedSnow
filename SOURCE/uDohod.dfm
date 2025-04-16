@@ -263,7 +263,6 @@ inherited frmDohod: TfrmDohod
         OnChange = deOutputChange
         CheckOnExit = True
         Root = 'rfMyComputer'
-        ExplicitWidth = 263
       end
       object lvOutput: TcxShellListView
         AlignWithMargins = True
@@ -314,9 +313,6 @@ inherited frmDohod: TfrmDohod
       ScrollBars = ssVertical
       TabOrder = 0
       Zoom = 100
-      ExplicitTop = 26
-      ExplicitWidth = 383
-      ExplicitHeight = 254
     end
     object pRightBottom2: TsPanel
       Left = 1
@@ -362,9 +358,6 @@ inherited frmDohod: TfrmDohod
         ScrollBars = ssVertical
         TabOrder = 1
         Zoom = 100
-        ExplicitLeft = 185
-        ExplicitTop = 37
-        ExplicitHeight = 236
       end
       object btnAnaliz: TButton
         Left = 5

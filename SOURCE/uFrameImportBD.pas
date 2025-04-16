@@ -87,8 +87,8 @@ begin
 end;
 
 procedure TfrmImportBD.sBitBtn2Click(Sender: TObject);
-var
-s: Widestring;
+//var
+//s: Widestring;
 begin
  {
    with DM do

@@ -11,10 +11,6 @@ inherited frmImportBD: TfrmImportBD
     Align = alClient
     Caption = 'sPanel1'
     TabOrder = 0
-    ExplicitLeft = 32
-    ExplicitTop = 111
-    ExplicitWidth = 609
-    ExplicitHeight = 314
     object sDBGrid1: TsDBGrid
       Left = 1
       Top = 1
@@ -47,9 +43,6 @@ inherited frmImportBD: TfrmImportBD
     Height = 41
     Align = alTop
     TabOrder = 1
-    ExplicitLeft = 24
-    ExplicitTop = 3
-    ExplicitWidth = 185
     object btnConnect: TsBitBtn
       Left = 8
       Top = 8

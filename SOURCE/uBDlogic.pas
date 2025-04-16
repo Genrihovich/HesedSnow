@@ -6,8 +6,8 @@ uses
   Classes, System.Variants, System.SysUtils, System.Generics.Collections,
   Vcl.Dialogs, Data.DB, Data.Win.ADODB;
 
-Function CuratorsList(table, pole: String): TStringList;
-Function GorodsList(kurator: String): TStringList;
+function CuratorsList(table, pole: String): TStringList;
+function GorodsList(kurator: String): TStringList;
 function ExportExcel(vKurators, vDir, vTitle: String; vPrint: boolean): boolean;
 function SearchPoziciy(Tabl: String; pole: String; NaNk: string): boolean;
 // поиск позиции в таблице Стринговое поле
@@ -17,7 +17,8 @@ procedure ImportExcelToBD;
 // поиск значения поля в таблице
 function SearchPoziciyString(Tabl, pole, Values, RezPole: string): String;
 // поиск значения поля в таблице при двух условиях
-function SearchPoziciyString2(Tabl, pole, Values, pole2, RezPole: string): String;
+function SearchPoziciyString2(Tabl, pole, Values, pole2,
+  RezPole: string): String;
 // подключение к бд в облаке
 function ConnectBD(provider, user, psw, server, DB, port: string): boolean;
 // импорт из екселя в таблицу данные в облако
@@ -27,7 +28,7 @@ procedure InsertCustomRowIntoNewTable(s, table_out, table_in: String);
 // получить список всех столбцов таблицы
 function GetColumnNames(ADOTable: TADOTable): TStrings;
 // сравниваем значение с значением из БД
-//function CampareDataWithBD(ValueJDC, ValueFIO): boolean;
+// function CampareDataWithBD(ValueJDC, ValueFIO): boolean;
 
 implementation
 
@@ -42,6 +43,8 @@ var
   stroka, kolonka: string;
 begin
   Result := false;
+  CollectionNameColumIntoExcel := nil;
+  CollectionNameColumnTable := nil;
   try
     if uMyExcel.RunExcel(false, false) = true then
       // проверка на инсталл и запуск Excel
@@ -156,7 +159,9 @@ var
   m, n, col, z: integer;
   CollectionNameTable: TDictionary<string, integer>;
   s: string;
+  ColIndex: integer;
 begin
+  CollectionNameTable := nil;
   try
     if uMyExcel.RunExcel(false, false) = true then
       // проверка на инсталл и запуск Excel
@@ -217,15 +222,16 @@ begin
             MyExcel.Cells
             [m, StrToInt(CollectionNameTable.Items['JDC ID'].ToString)].value;
 
-            // ФІО Клиент
-           if ((MyExcel.Cells [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value = 'FIO')
-           or
-            (MyExcel.Cells [m, StrToInt(CollectionNameTable.Items['Клиент'].ToString)].value = 'FIO'))
-            then
-
+          // ФІО Клиент
+          // Определяем индекс столбца (ищем сначала "ФИО", если нет - "Клиент")
+          if CollectionNameTable.ContainsKey('ФИО') then
+            ColIndex := CollectionNameTable.Items['ФИО']
+          else if CollectionNameTable.ContainsKey('Клиент') then
+            ColIndex := CollectionNameTable.Items['Клиент']
+          else
+            Exit; // Нет нужного столбца — выход
           tVedomost.FieldByName('FIO').AsString :=
-            MyExcel.Cells
-            [m, StrToInt(CollectionNameTable.Items['ФИО'].ToString)].value;
+            MyExcel.Cells[m, ColIndex].value;
 
           tVedomost.FieldByName('Count_usl').AsCurrency :=
             MyExcel.Cells[m, StrToInt(CollectionNameTable.Items['Количество']
@@ -330,30 +336,30 @@ end;
   table -  таблица из которой вынимаются данные
   pole - Поле по которому группируются данные
 }
-Function CuratorsList(table, pole: String): TStringList;
-var // Список кураторов в ведомости для обработки
-  i: integer;
-  f: TStringList;
+function CuratorsList(table, pole: String): TStringList;
+// Список кураторов в ведомости для обработки
 begin
-  with DM.qQuery do
-  begin
-    f := TStringList.Create;
+  Result := TStringList.Create;
 
-    Active := false;
-    SQL.Clear;
-    SQL.Add('SELECT ' + table + '.' + pole + ' FROM ' + table + ' GROUP BY ' +
-      table + '.' + pole + ';');
-    Active := true;
-
-    if RecordCount > 0 then
+  try
+    with DM.qQuery do
     begin
-      for i := 0 to RecordCount - 1 do
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT ' + table + '.' + pole + ' FROM ' + table + ' GROUP BY ' +
+        table + '.' + pole + ';');
+      Open;
+
+      while not Eof do
       begin
-        f.Add(FieldByName(pole).AsString);
+        Result.Add(FieldByName(pole).AsString);
         next;
       end;
-      Result := f;
     end;
+
+  except
+    Result.Free;
+    raise;
   end;
 end;
 
@@ -361,32 +367,27 @@ end;
   table -  таблица из которой вынимаются данные
   pole - Поле по которому группируются данные
 }
-Function GorodsList(kurator: String): TStringList;
-var // Список кураторов в ведомости для обработки
-  i: integer;
-  f: TStringList;
+function GorodsList(kurator: String): TStringList;
 begin
-  with DM.qQuery do
-  begin
-    f := TStringList.Create;
-
-    Active := false;
-    SQL.Clear;
-
-    SQL.Add('SELECT Vidomist.Curator, Vidomist.Gorod FROM Vidomist GROUP BY Vidomist.Curator, Vidomist.Gorod '
-      + 'HAVING (((Vidomist.Curator)="' + kurator + '"));');
-
-    Active := true;
-
-    if RecordCount > 0 then
+  Result := TStringList.Create;
+  try
+    with DM.qQuery do
     begin
-      for i := 0 to RecordCount - 1 do
+      Close;
+      SQL.Clear;
+      SQL.Add('SELECT Vidomist.Curator, Vidomist.Gorod FROM Vidomist GROUP BY Vidomist.Curator, Vidomist.Gorod '
+        + 'HAVING (((Vidomist.Curator)="' + kurator + '"));');
+      Open;
+
+      while not Eof do
       begin
-        f.Add(FieldByName('Gorod').AsString);
+        Result.Add(FieldByName('Gorod').AsString);
         next;
       end;
-      Result := f;
     end;
+  except
+    Result.Free;
+    raise;
   end;
 end;
 
@@ -408,196 +409,205 @@ begin
     MyExcel.Workbooks.Add; // добавляем новую книгу
     i := 1; // кол-во листов в книге
 
-    // 1 делаем список кураторов у данной ведомости
-    gorods := TStringList.Create;
-    gorods := GorodsList(vKurators);
+    gorods := nil;
+    try
+      // 1 делаем список кураторов у данной ведомости
+      gorods := GorodsList(vKurators);
 
-    for g := 0 to gorods.Count - 1 do
-    begin
-
-      if MyExcel.Worksheets.Count >= i then
+      for g := 0 to gorods.Count - 1 do
       begin
-        Sheets := MyExcel.Worksheets[i];
-      end
-      else
-      begin
-        Sheets := MyExcel.Worksheets.Add(After := Sheets);
-      end;
 
-      // Sheets.name := Copy(vKurators, 1, 30) + ' ' + gorods[g];
-
-      Sheets := MyExcel.ActiveWorkBook.Sheets[i];
-      Sheets.name := gorods[g];
-
-      ExcelApp := MyExcel.ActiveWorkBook.Worksheets[i].columns;
-
-      // ----------- параметры документа ---------------
-      MyExcel.ActiveSheet.PageSetup.Orientation := 2;
-      MyExcel.ActiveSheet.PageSetup.LeftMargin :=
-        MyExcel.Application.InchesToPoints(0.30);
-      MyExcel.ActiveSheet.PageSetup.RightMargin :=
-        MyExcel.Application.InchesToPoints(0.20);
-      MyExcel.ActiveSheet.PageSetup.TopMargin :=
-        MyExcel.Application.InchesToPoints(0.44);
-      MyExcel.ActiveSheet.PageSetup.BottomMargin :=
-        MyExcel.Application.InchesToPoints(0.44);
-      Sheets.PageSetup.PrintTitleRows := '$2:$2';
-
-      MyExcel.ActiveSheet.PageSetup.CenterFooter :=
-        '&"Arial"&8Лист &"Arial,полужирный"&P' +
-        '&"Arial,обычный" из &"Arial,полужирный"&N';
-      MyExcel.ActiveSheet.PageSetup.RightFooter := '&D';
-
-      // ----------------- колонки -------------------
-      // №
-      ExcelApp.columns[1].columnwidth := 3.17;
-      ExcelApp.columns[1].AutoFit;
-      ExcelApp.columns[1].HorizontalAlignment := 3;
-      ExcelApp.columns[1].VerticalAlignment := 2;
-      // JDCID
-      ExcelApp.columns[2].columnwidth := 11.71;
-      ExcelApp.columns[2].HorizontalAlignment := 3;
-      ExcelApp.columns[2].NumberFormat := '@';
-      ExcelApp.columns[2].VerticalAlignment := 2;
-      // FIO
-      ExcelApp.columns[3].columnwidth := 20.00;
-      ExcelApp.columns[3].WrapText := true;
-      ExcelApp.columns[3].VerticalAlignment := 2;
-      // Адрес
-      ExcelApp.columns[4].columnwidth := 20.00;
-      ExcelApp.columns[4].WrapText := true;
-      ExcelApp.columns[4].VerticalAlignment := 2;
-      // тел
-      ExcelApp.columns[5].columnwidth := 12.00;
-      ExcelApp.columns[5].NumberFormat := '@';
-      ExcelApp.columns[5].VerticalAlignment := 2;
-      // кол-во
-      ExcelApp.columns[6].columnwidth := 3.29;
-      ExcelApp.columns[6].VerticalAlignment := 2;
-      ExcelApp.columns[6].HorizontalAlignment := 3;
-      // сумма
-      ExcelApp.columns[7].columnwidth := 13.14;
-      ExcelApp.columns[7].NumberFormat := '0.00" грн."';
-      ExcelApp.columns[7].VerticalAlignment := 2;
-      // дата
-      ExcelApp.columns[8].columnwidth := 11.71;
-      ExcelApp.columns[8].HorizontalAlignment := 3;
-      ExcelApp.columns[8].NumberFormat := 'dd.mm.yyyy'; // 'ДД.ММ.ГГГГ';
-      ExcelApp.columns[8].VerticalAlignment := 2;
-      // подпись
-      ExcelApp.columns[9].columnwidth := 12.00;
-      ExcelApp.columns[9].VerticalAlignment := 2;
-      // примечание
-      ExcelApp.columns[10].columnwidth := 27.00;
-      ExcelApp.columns[10].VerticalAlignment := 2;
-
-      // -------------- заглавие таблицы ----------------
-      Sheets.select;
-      Sheets.Range['A1:H1'].select;
-      Sheets.Range['A1:H1'].Merge;
-      MyExcel.Selection.HorizontalAlignment := xlCenter;
-      MyExcel.Selection.Font.name := 'Calibri';
-      MyExcel.Selection.Font.Size := 14;
-      MyExcel.Selection.Font.Bold := true;
-      Sheets.Cells[1, 1] := vTitle;
-
-      Sheets.Range['I1:J1'].select;
-      Sheets.Range['I1:J1'].Merge;
-      MyExcel.Selection.Font.name := 'Calibri';
-      MyExcel.Selection.Font.Size := 8;
-      MyExcel.Selection.HorizontalAlignment := 4;
-      MyExcel.Range['I1'].value := 'Куратор: ' + vKurators;
-
-      // -------------- Шапка таблицы ---------------
-      Sheets.Range['A2:J2'].select;
-      MyExcel.Selection.Borders.LineStyle := xlContinuous; // границы
-      MyExcel.Selection.Borders.Weight := xlThin; // показать
-      MyExcel.Selection.HorizontalAlignment := 3;
-      MyExcel.Selection.VerticalAlignment := 2;
-      MyExcel.Selection.Font.name := 'Calibri';
-      MyExcel.Selection.Font.Size := 12;
-      MyExcel.Selection.WrapText := true; // вкл перенос по словам
-      MyExcel.Selection.Borders[9].LineStyle := 9;
-
-      Sheets.Range['A2'].value := '№';
-      Sheets.Range['B2'].value := 'JDCID';
-      Sheets.Range['C2'].value := 'ПІБ';
-      Sheets.Range['D2'].value := 'Адреса';
-      Sheets.Range['E2'].value := 'Телефон';
-      Sheets.Range['F2'].value := 'Кіл';
-      Sheets.Range['G2'].value := 'Сума';
-      Sheets.Range['H2'].value := 'Дата';
-      Sheets.Range['I2'].value := 'Підпис';
-      Sheets.Range['J2'].value := 'Примітка';
-
-      with DM.qQuery do
-      begin
-        Active := false;
-        SQL.Clear;
-        SQL.Add('SELECT * FROM Vidomist WHERE (((Vidomist.Curator)="' +
-          vKurators + '") AND ((Vidomist.Gorod)="' + gorods[g] +
-          '")) ORDER BY Vidomist.FIO;');
-
-        Active := true;
-        First;
-        j := 3; // c третьей строки заполняем
-        while not Eof do
+        if MyExcel.Worksheets.Count >= i then
         begin
-          Sheets.Range['' + 'A' + IntToStr(j) + ':J' + IntToStr(j) + ''].select;
-          MyExcel.Selection.Borders.LineStyle := xlContinuous; // границы
-          MyExcel.Selection.Borders.Weight := xlThin; // показать
-          MyExcel.Selection.Font.Size := 11;
-
-          Sheets.Cells[j, 1] := '=ROW(A' + IntToStr(j - 2) + ')';
-          Sheets.Cells[j, 2] := FieldByName('JDCID').AsString;
-          Sheets.Cells[j, 3] := FieldByName('FIO').AsString;
-          Sheets.Cells[j, 4] := FieldByName('Adress').AsString;
-          Sheets.Cells[j, 5] := FieldByName('Mobila').AsString;
-          Sheets.Cells[j, 6] := FieldByName('Count_usl').AsString;
-          Sheets.Cells[j, 7] := CurrToStr(FieldByName('Cost_usl').AsCurrency);
-
-          Inc(j);
-          next;
+          Sheets := MyExcel.Worksheets[i];
+        end
+        else
+        begin
+          Sheets := MyExcel.Worksheets.Add(After := Sheets);
         end;
-        // футер
-        // подсчет столбца и место под подпись
-        Sheets.Cells[j, 7] := ('=SUM(G3:G' + IntToStr(j - 1) + ')');
-        Sheets.Cells[j, 5] := 'Итого: ';
 
-        Sheets.Cells[j + 3, 5] := 'Директор ХБФ "ХеседБешт" ';
-        Sheets.Range['E' + IntToStr(j + 3) + ':I' + IntToStr(j + 3) +
-          ''].select;
-        MyExcel.Selection.Borders[9].LineStyle := xlContinuous;
-        MyExcel.Selection.Borders[9].Weight := xlThin;
-        MyExcel.Selection.Font.Size := 12;
-        Sheets.Cells[j + 3, 9] := 'І. Ратушний ';
+        // Sheets.name := Copy(vKurators, 1, 30) + ' ' + gorods[g];
 
-        Sheets.Cells[j + 5, 5] := 'Менеджер ';
-        Sheets.Range['E' + IntToStr(j + 5) + ':I' + IntToStr(j + 5) +
-          ''].select;
-        MyExcel.Selection.Borders[9].LineStyle := xlContinuous;
-        MyExcel.Selection.Borders[9].Weight := xlThin;
+        Sheets := MyExcel.ActiveWorkBook.Sheets[i];
+        Sheets.name := gorods[g];
+
+        ExcelApp := MyExcel.ActiveWorkBook.Worksheets[i].columns;
+
+        // ----------- параметры документа ---------------
+        MyExcel.ActiveSheet.PageSetup.Orientation := 2;
+        MyExcel.ActiveSheet.PageSetup.LeftMargin :=
+          MyExcel.Application.InchesToPoints(0.30);
+        MyExcel.ActiveSheet.PageSetup.RightMargin :=
+          MyExcel.Application.InchesToPoints(0.20);
+        MyExcel.ActiveSheet.PageSetup.TopMargin :=
+          MyExcel.Application.InchesToPoints(0.44);
+        MyExcel.ActiveSheet.PageSetup.BottomMargin :=
+          MyExcel.Application.InchesToPoints(0.44);
+        Sheets.PageSetup.PrintTitleRows := '$2:$2';
+
+        MyExcel.ActiveSheet.PageSetup.CenterFooter :=
+          '&"Arial"&8Лист &"Arial,полужирный"&P' +
+          '&"Arial,обычный" из &"Arial,полужирный"&N';
+        MyExcel.ActiveSheet.PageSetup.RightFooter := '&D';
+
+        // ----------------- колонки -------------------
+        // №
+        ExcelApp.columns[1].columnwidth := 3.17;
+        ExcelApp.columns[1].AutoFit;
+        ExcelApp.columns[1].HorizontalAlignment := 3;
+        ExcelApp.columns[1].VerticalAlignment := 2;
+        // JDCID
+        ExcelApp.columns[2].columnwidth := 11.71;
+        ExcelApp.columns[2].HorizontalAlignment := 3;
+        ExcelApp.columns[2].NumberFormat := '@';
+        ExcelApp.columns[2].VerticalAlignment := 2;
+        // FIO
+        ExcelApp.columns[3].columnwidth := 20.00;
+        ExcelApp.columns[3].WrapText := true;
+        ExcelApp.columns[3].VerticalAlignment := 2;
+        // Адрес
+        ExcelApp.columns[4].columnwidth := 20.00;
+        ExcelApp.columns[4].WrapText := true;
+        ExcelApp.columns[4].VerticalAlignment := 2;
+        // тел
+        ExcelApp.columns[5].columnwidth := 12.00;
+        ExcelApp.columns[5].NumberFormat := '@';
+        ExcelApp.columns[5].VerticalAlignment := 2;
+        // кол-во
+        ExcelApp.columns[6].columnwidth := 3.29;
+        ExcelApp.columns[6].VerticalAlignment := 2;
+        ExcelApp.columns[6].HorizontalAlignment := 3;
+        // сумма
+        ExcelApp.columns[7].columnwidth := 13.14;
+        ExcelApp.columns[7].NumberFormat := '0.00" грн."';
+        ExcelApp.columns[7].VerticalAlignment := 2;
+        // дата
+        ExcelApp.columns[8].columnwidth := 11.71;
+        ExcelApp.columns[8].HorizontalAlignment := 3;
+        ExcelApp.columns[8].NumberFormat := 'dd.mm.yyyy'; // 'ДД.ММ.ГГГГ';
+        ExcelApp.columns[8].VerticalAlignment := 2;
+        // подпись
+        ExcelApp.columns[9].columnwidth := 12.00;
+        ExcelApp.columns[9].VerticalAlignment := 2;
+        // примечание
+        ExcelApp.columns[10].columnwidth := 27.00;
+        ExcelApp.columns[10].VerticalAlignment := 2;
+
+        // -------------- заглавие таблицы ----------------
+        Sheets.select;
+        Sheets.Range['A1:H1'].select;
+        Sheets.Range['A1:H1'].Merge;
+        MyExcel.Selection.HorizontalAlignment := xlCenter;
+        MyExcel.Selection.Font.name := 'Calibri';
         MyExcel.Selection.Font.Size := 14;
+        MyExcel.Selection.Font.Bold := true;
+        Sheets.Cells[1, 1] := vTitle;
 
+        Sheets.Range['I1:J1'].select;
+        Sheets.Range['I1:J1'].Merge;
+        MyExcel.Selection.Font.name := 'Calibri';
+        MyExcel.Selection.Font.Size := 8;
+        MyExcel.Selection.HorizontalAlignment := 4;
+        MyExcel.Range['I1'].value := 'Куратор: ' + vKurators;
+
+        // -------------- Шапка таблицы ---------------
+        Sheets.Range['A2:J2'].select;
+        MyExcel.Selection.Borders.LineStyle := xlContinuous; // границы
+        MyExcel.Selection.Borders.Weight := xlThin; // показать
+        MyExcel.Selection.HorizontalAlignment := 3;
+        MyExcel.Selection.VerticalAlignment := 2;
+        MyExcel.Selection.Font.name := 'Calibri';
+        MyExcel.Selection.Font.Size := 12;
+        MyExcel.Selection.WrapText := true; // вкл перенос по словам
+        MyExcel.Selection.Borders[9].LineStyle := 9;
+
+        Sheets.Range['A2'].value := '№';
+        Sheets.Range['B2'].value := 'JDCID';
+        Sheets.Range['C2'].value := 'ПІБ';
+        Sheets.Range['D2'].value := 'Адреса';
+        Sheets.Range['E2'].value := 'Телефон';
+        Sheets.Range['F2'].value := 'Кіл';
+        Sheets.Range['G2'].value := 'Сума';
+        Sheets.Range['H2'].value := 'Дата';
+        Sheets.Range['I2'].value := 'Підпис';
+        Sheets.Range['J2'].value := 'Примітка';
+
+        with DM.qQuery do
+        begin
+          Active := false;
+          SQL.Clear;
+          SQL.Add('SELECT * FROM Vidomist WHERE (((Vidomist.Curator)="' +
+            vKurators + '") AND ((Vidomist.Gorod)="' + gorods[g] +
+            '")) ORDER BY Vidomist.FIO;');
+
+          Active := true;
+          First;
+          j := 3; // c третьей строки заполняем
+          while not Eof do
+          begin
+            Sheets.Range['' + 'A' + IntToStr(j) + ':J' + IntToStr(j) +
+              ''].select;
+            MyExcel.Selection.Borders.LineStyle := xlContinuous; // границы
+            MyExcel.Selection.Borders.Weight := xlThin; // показать
+            MyExcel.Selection.Font.Size := 11;
+
+            Sheets.Cells[j, 1] := '=ROW(A' + IntToStr(j - 2) + ')';
+            Sheets.Cells[j, 2] := FieldByName('JDCID').AsString;
+            Sheets.Cells[j, 3] := FieldByName('FIO').AsString;
+            Sheets.Cells[j, 4] := FieldByName('Adress').AsString;
+            Sheets.Cells[j, 5] := FieldByName('Mobila').AsString;
+            Sheets.Cells[j, 6] := FieldByName('Count_usl').AsString;
+            Sheets.Cells[j, 7] := CurrToStr(FieldByName('Cost_usl').AsCurrency);
+
+            Inc(j);
+            next;
+          end;
+          // футер
+          // подсчет столбца и место под подпись
+          Sheets.Cells[j, 7] := ('=SUM(G3:G' + IntToStr(j - 1) + ')');
+          Sheets.Cells[j, 5] := 'Итого: ';
+
+          Sheets.Cells[j + 3, 5] := 'Директор ХБФ "ХеседБешт" ';
+          Sheets.Range['E' + IntToStr(j + 3) + ':I' + IntToStr(j + 3) +
+            ''].select;
+          MyExcel.Selection.Borders[9].LineStyle := xlContinuous;
+          MyExcel.Selection.Borders[9].Weight := xlThin;
+          MyExcel.Selection.Font.Size := 12;
+          Sheets.Cells[j + 3, 9] := 'І. Ратушний ';
+
+          Sheets.Cells[j + 5, 5] := 'Менеджер ';
+          Sheets.Range['E' + IntToStr(j + 5) + ':I' + IntToStr(j + 5) +
+            ''].select;
+          MyExcel.Selection.Borders[9].LineStyle := xlContinuous;
+          MyExcel.Selection.Borders[9].Weight := xlThin;
+          MyExcel.Selection.Font.Size := 14;
+
+        end;
+        Inc(i);
       end;
-      Inc(i);
+
+      flName := vDir + vKurators + '_' + vTitle + '.xlsx';
+      SaveWorkBook(flName, 1); // Сохраняем файл
+      Result := true;
+
+      // сохраняем путь к файлу в глобальную переменную
+      uFrameVidomist.VedomistFileName := flName;
+
+      // друк документа
+      if vPrint = true then
+
+        MyExcel.Worksheets.PrintOut;
+
+      StopExcel;
+
+      ExcelApp := Unassigned;
+      Sheets := Unassigned;
+    finally
+      gorods.Free;
     end;
 
-    flName := vDir + vKurators + '_' + vTitle + '.xlsx';
-    SaveWorkBook(flName, 1); // Сохраняем файл
-    Result := true;
-
-    // сохраняем путь к файлу в глобальную переменную
-    uFrameVidomist.VedomistFileName := flName;
-
-    // друк документа
-    if vPrint = true then
-
-      MyExcel.Worksheets.PrintOut;
   end;
-  StopExcel;
-  ExcelApp := Unassigned;
-  Sheets := Unassigned;
+
 end;
 
 { * ------------------ поиск позиции в таблице Стринговое поле -----------
@@ -649,14 +659,16 @@ begin
 end;
 
 // поиск значения поля в таблице при двух условиях
-function SearchPoziciyString2(Tabl, pole, Values, pole2, RezPole: string): String;
+function SearchPoziciyString2(Tabl, pole, Values, pole2,
+  RezPole: string): String;
 begin
-   with DM.qQuery do
+  with DM.qQuery do
   begin
     Active := false;
     Close;
     SQL.Clear;
-    SQL.Add('SELECT * From ' + Tabl + ' Where (((' + Tabl + '.[' + pole + ']) = "' + Values + '") and (' + Tabl + '.[' + pole2 + ']) = True)');
+    SQL.Add('SELECT * From ' + Tabl + ' Where (((' + Tabl + '.[' + pole +
+      ']) = "' + Values + '") and (' + Tabl + '.[' + pole2 + ']) = True)');
 
     Active := true;
 
@@ -678,6 +690,8 @@ end;
 function InsertRecord(Tabl, poles, _fio, _inn: String; _isObrok: boolean;
   _ostatok: integer): boolean;
 begin
+ Result := False; // за замовчуванням
+ try
   with DM.qQuery do
   begin
     Active := false;
@@ -692,6 +706,16 @@ begin
     ExecSQL;
     Close;
   end;
+  Result := True; // якщо все успішно
+   except
+    on E: Exception do
+    begin
+      // За бажанням: логування помилки
+       ShowMessage('Помилка вставки: ' + E.Message);
+      Result := False;
+    end;
+  end;
+
 end;
 
 {
@@ -745,7 +769,7 @@ begin
   try
     for i := 0 to ADOTable.FieldDefs.Count - 1 do
     begin
-    s := ADOTable.FieldDefs[i].name;
+      s := ADOTable.FieldDefs[i].name;
       StringList.Add(ADOTable.FieldDefs[i].name);
     end;
     k := StringList.Count;
@@ -755,9 +779,7 @@ begin
     ADOTable.Close;
     raise;
   end;
- ADOTable.Close;
+  ADOTable.Close;
 end;
-
-
 
 end.

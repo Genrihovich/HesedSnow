@@ -92,13 +92,13 @@ type
     { Private declarations }
     PdfView: TPdfView;
     FileNameTXT: String;
-    procedure AddColoredLine(ARichEdit: TRichEdit; AText: string;
-      AColor: TColor);
 
   public
     { Public declarations }
     procedure AfterCreation; override; // Вызывается после создания frame
     procedure BeforeDestruct; override;
+    procedure AddColoredLine(ARichEdit: TRichEdit; AText: string;
+      AColor: TColor);
   end;
 
 implementation
@@ -135,8 +135,9 @@ begin
   lvInput.root.CustomPath := deInput.Text;
 
   s := sStoreUtils.ReadIniString('Path', 'OutputPath', IniName);
-  if s <> '' then deOutput.Text := s;
-    lvOutput.root.CustomPath := deOutput.Text;
+  if s <> '' then
+    deOutput.Text := s;
+  lvOutput.root.CustomPath := deOutput.Text;
 end;
 
 procedure TfrmDohod.BeforeDestruct;
@@ -149,8 +150,8 @@ end;
 
 procedure TfrmDohod.sBitBtn1Click(Sender: TObject);
 var
-  i, j: integer;
-  str, s, F, N, O, SQLText, txt: String;
+  i: integer;
+  str, s, F, N, O, SQLText: String;
   Client: TStringList;
 
 begin
@@ -159,6 +160,7 @@ begin
     s := Trim(mInSpisok.Lines[i]);
     if s <> '' then
     begin
+    Client := nil;
       try
         Client := TStringList.Create;
         // разделяем строку на слова
@@ -291,17 +293,17 @@ end;
 
 procedure TfrmDohod.lvInputChange(Sender: TObject; Item: TListItem;
   Change: TItemChange);
-  var
+var
   s, fntxt: string;
 begin
-   // открываем PDF файл
- s := Trim(lvInput.SelectedFilePaths.Text);
+  // открываем PDF файл
+  s := Trim(lvInput.SelectedFilePaths.Text);
   PdfView.OpenPdfFile(s);
   PdfView.FitWidth;
   txtOutput.Lines.Clear;
 
   fntxt := ExtractFileNameEx(s) + '.txt';
-  FileNameTXT := lvOutput.Root.CurrentPath + '\'+fntxt;
+  FileNameTXT := lvOutput.root.CurrentPath + '\' + fntxt;
   txtOutput.Lines.LoadFromFile(FileNameTXT, TEncoding.UTF8);
 end;
 
@@ -310,8 +312,8 @@ procedure TfrmDohod.lvOutputChange(Sender: TObject; Item: TListItem;
 begin
   inherited;
   FileNameTXT := Trim(lvOutput.SelectedFilePaths.Text);
-   txtOutput.Clear;
-   txtOutput.Lines.LoadFromFile(FileNameTXT, TEncoding.UTF8);
+  txtOutput.Clear;
+  txtOutput.Lines.LoadFromFile(FileNameTXT, TEncoding.UTF8);
 end;
 
 procedure TfrmDohod.tbtnOpenFileClick(Sender: TObject);
@@ -358,7 +360,8 @@ var
   pythonScript: string;
 begin
   inherited;
-   pythonScript := 'G:\JS\pdftotext\index2.py'; // Замените на путь к вашему Python-скрипту
+  pythonScript := 'G:\JS\pdftotext\index2.py';
+  // Замените на путь к вашему Python-скрипту
 
   if FileExists(pythonScript) then
   begin
@@ -405,8 +408,8 @@ end;
 
 procedure TfrmDohod.btnAnalizClick(Sender: TObject);
 var
-  s, pib, dohod: String;
-  i, onPos: integer;
+  s, pib: String;
+  i: integer;
 begin
   inherited; // ------------ АНАЛІЗУВАТИ ------------------
   mInSpisok.Clear;
@@ -445,8 +448,6 @@ begin
 
 end;
 
-
-
 procedure TfrmDohod.ToolButton1Click(Sender: TObject);
 var
   i: integer;
@@ -454,7 +455,8 @@ begin
   // пробежаться по всем файлам
   for i := 0 to lvOutput.FolderCount - 1 do
   begin
-    txtOutput.Lines.LoadFromFile(Trim(lvOutput.Folders[i].PathName), TEncoding.UTF8);
+    txtOutput.Lines.LoadFromFile(Trim(lvOutput.Folders[i].PathName),
+      TEncoding.UTF8);
     btnAnalizClick(Sender);
   end;
 
@@ -463,15 +465,15 @@ end;
 procedure TfrmDohod.btnCreateExcelClick(Sender: TObject);
 var
   Sheets, ExcelApp: variant;
-  i, col, row: Integer;
+  i, col, row: integer;
   s, DirectoryNow, FileNameS: String;
 begin
-  //--------- Файл с доходами ------------
+  // --------- Файл с доходами ------------
   if uMyExcel.RunExcel(false, false) = true then
     MyExcel.Workbooks.Add; // добавляем новую книгу
 
   Sheets := MyExcel.Worksheets.Add;
-  Sheets.name := 'A1';
+  Sheets.Name := 'A1';
   ParametryStr; // Парметры страницы
   Sheets.PageSetup.PrintTitleRows := '$2:$2';
 
@@ -499,39 +501,37 @@ begin
   MyExcel.Range['G1'].value := 'Источник данных';
   MyExcel.Range['H1'].value := 'Примечание';
 
-      row := 2;
-      col := 1;
-    for I := 0 to mOutSpisok.Lines.Count -1 do
+  row := 2;
+  col := 1;
+  for i := 0 to mOutSpisok.Lines.Count - 1 do
+  begin
+
+    s := mOutSpisok.Lines[i];
+    if s <> '' then
+    begin
+      if col = 3 then
       begin
+        MyExcel.Cells[row, col + 1] := s;
+        MyExcel.Cells[row, col] := 'Пенсия';
+        MyExcel.Cells[row, col + 2] := '13.11.2023';
+        MyExcel.Cells[row, col + 3] := '1';
+        MyExcel.Cells[row, col + 4] := 'Документ';
+        MyExcel.Cells[row, col + 5] := 'из импорта';
+        col := 0;
+        Inc(row);
+      end
+      else
+        MyExcel.Cells[row, col] := s;
 
-       s:= mOutSpisok.Lines[i];
-       if s <> '' then
-       begin
-            if col=3 then
-            begin
-             MyExcel.Cells[row, col+1] := s;
-             MyExcel.Cells[row, col] := 'Пенсия';
-             MyExcel.Cells[row, col+2] := '13.11.2023';
-             MyExcel.Cells[row, col+3] := '1';
-             MyExcel.Cells[row, col+4] := 'Документ';
-             MyExcel.Cells[row, col+5] := 'из импорта';
-             col := 0;
-             Inc(row);
-            end
-            else
-            MyExcel.Cells[row, col] := s;
+      Inc(col);
+    end;
 
-          Inc(col);
-       end;
-
-      end;
-
+  end;
 
   DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Доход\';
 
   if not DirectoryExists('DirectoryNow') then
     ForceDirectories(DirectoryNow);
-
 
   FileNameS := DirectoryNow + 'Доходы_' + FormatDateTime('dd.mm.yyyy hh_mm_ss',
     Now) + '.xlsx';
