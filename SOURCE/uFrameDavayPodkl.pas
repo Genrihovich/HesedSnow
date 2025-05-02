@@ -127,7 +127,8 @@ begin
         NumUslugy := SearchPoziciyString('Vidomist', 'JDCID', JDCID,
           'Num_Uslugy');
         MyExcel.Cells[k, 1] := NumUslugy; // num usluga
-
+        MyExcel.Cells[k, 7] := '1'; // Кол-во
+        MyExcel.Cells[k, 6] := '0';
         AutoStringGridWidth(StringGrid);
 
         Inc(k);
