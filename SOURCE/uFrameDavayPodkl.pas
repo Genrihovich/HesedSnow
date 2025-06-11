@@ -39,6 +39,7 @@ type
   private
     { Private declarations }
     listName : String;  //имя листа екселя
+    excelFileName : String;
   public
     { Public declarations }
     procedure AfterCreation; override;
@@ -137,15 +138,15 @@ begin
     end;
   end;
 
-  if listName = '' then listName := 'NoName';
+ // if listName = '' then listName := 'NoName';
 
 
   DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
   if not DirectoryExists('DirectoryNow') then
     ForceDirectories(DirectoryNow);
 
-  FileNameS := DirectoryNow + 'Клубные мероприятия_' +
-    FormatDateTime('dd.mm.yyyy', Now) + '_' + listName + '.xlsx';
+  FileNameS := DirectoryNow + 'КМ_' +
+    FormatDateTime('dd.mm.yyyy', Now) + '_' + excelFileName + '.xlsx';
 
   uMyExcel.SaveWorkBook(FileNameS, 1);
 
@@ -300,7 +301,7 @@ begin
       myForm.OpenDialog.Filter := 'Файлы MS Excel|*.xls;*.xlsx|';
     if not myForm.OpenDialog.Execute then
       Exit;
-
+   excelFileName := ExtractFileNameEx(myForm.OpenDialog.FileName);
     // открываем книгу Excel
     if uMyExcel.OpenWorkBook(myForm.OpenDialog.FileName, false) then
 
@@ -478,8 +479,8 @@ begin
             DirectoryNow := ExtractFilePath(ParamStr(0)) + 'Данные\Клуб\';
             if not DirectoryExists('DirectoryNow') then
               ForceDirectories(DirectoryNow);
-            FileNameS := DirectoryNow + 'Новые Клубные мероприятия_' +
-              FormatDateTime('dd.mm.yyyy', Now) + '.txt';
+            FileNameS := DirectoryNow + 'Новые КМ_' +
+              FormatDateTime('dd.mm.yyyy', Now) + ' ' + excelFileName + '.txt';
 
             Zahods.SaveToFile(FileNameS);
           end;
