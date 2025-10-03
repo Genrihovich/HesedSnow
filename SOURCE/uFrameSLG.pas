@@ -6,7 +6,8 @@ uses uFrameCustom, Data.DB, Vcl.DBGrids, acDBGrid, MyDBGrid, Vcl.Dialogs,
   System.Classes, System.Actions, Vcl.ActnList, Vcl.Grids, JvExGrids,
   JvStringGrid, Vcl.StdCtrls, sEdit, Vcl.ExtCtrls, Vcl.Controls, Vcl.Buttons,
   sPanel, sFrameAdapter, System.SysUtils, System.Generics.Collections,
-  Vcl.Forms, System.Variants, System.UITypes, Winapi.ShellAPI, Winapi.Windows;
+  Vcl.Forms, System.Variants, System.UITypes, Winapi.ShellAPI, Winapi.Windows,
+  Vcl.Graphics;
 
 type
   TfrmSLG = class(TCustomInfoFrame)
@@ -63,6 +64,8 @@ type
       State: TDragState; var Accept: Boolean);
     procedure StringGridDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure MyDBGrid2KeyPress(Sender: TObject; var Key: Char);
+    procedure StringGridDrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
   private
     { Private declarations }
     procedure ShapkaStringGrida;
@@ -685,6 +688,33 @@ begin // разрешение на прием
   StringGrid.MouseToCell(X, Y, Acol, ARow);
   Accept := (Sender = Source) and (Acol > 0) and (ARow > 0) or
     (Source is TMyDBGrid);
+end;
+
+procedure TfrmSLG.StringGridDrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+var
+  Grid: TStringGrid;
+begin
+  Grid := Sender as TJVStringGrid;
+
+  // Фіксовані рядки залишаємо білими
+  if ARow < Grid.FixedRows then
+  begin
+    Grid.Canvas.Brush.Color := clBtnFace;
+  end
+  else
+  begin
+    // Чергування кольорів: парні рядки білі, непарні сірі
+    if Odd(ARow - Grid.FixedRows) then
+      Grid.Canvas.Brush.Color := $00E0F0FF //$00E0E0E0  // світло-сірий
+    else
+      Grid.Canvas.Brush.Color := clWhite;
+  end;
+
+  Grid.Canvas.FillRect(Rect);  // заповнюємо фон
+
+  // Малюємо текст
+  Grid.Canvas.TextRect(Rect, Rect.Left + 2, Rect.Top + 2, Grid.Cells[ACol, ARow]);
 end;
 
 procedure TfrmSLG.StringGridMouseDown(Sender: TObject; Button: TMouseButton;

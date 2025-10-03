@@ -3,10 +3,12 @@ unit uMyProcedure;
 interface
 
 uses
-  ComObj, ActiveX, Variants, Windows, Messages, SysUtils, Classes, Vcl.Dialogs,
+  ComObj, ActiveX,
+//   Variants,
+   Windows, Messages, SysUtils, Classes, Vcl.Dialogs,
   System.UITypes, JvStringGrid, sComboBox, DateUtils, sCheckBox, sScrollBox,
   Vcl.ExtCtrls, mimemess, mimepart, smtpsend, sLabel, Data.Win.ADODB,
-  System.Character, DBGridEh, Vcl.Forms,
+  System.Character, DBGridEh, Vcl.Forms, System.Variants,
   System.Generics.Collections, Winapi.ShellAPI, Vcl.Controls;
 
 // заполнение комбобокса месяцами
@@ -41,6 +43,11 @@ function ReplaceChar(s: string): String; //
 function isDateBetween(begindate, enddate, checkdate: String): boolean;
 // исправить даты
 function RecoveryDate(date_period, error_date: string): string;
+// перевірка на коректність дати
+function AskCorrectDateFromExcel(CellValue: OleVariant; out CorrectDate: TDateTime): Boolean;
+// перевірка дат чи в одному періоді
+function CorrectDateMonth(D: TDateTime; RefMonth, RefYear: Word): TDateTime;
+
 
 // создание чекбокса для кураторов для отправки по почте
 procedure CreateCheckBoxCurators(curator: string; panelParent: TsScrollBox;
@@ -1230,5 +1237,95 @@ begin
   StringGrid.RowCount := 1;
   Application.ProcessMessages;
 end;
+
+
+// перевірка на коректність дати
+
+function AskCorrectDateFromExcel(CellValue: OleVariant; out CorrectDate: TDateTime): Boolean;
+var
+  s, YearStr: string;
+  d, m: Word;
+  y: Integer;
+  CorrectedDate: TDateTime;
+  input: string;
+begin
+  Result := False;
+  CorrectDate := 0;
+  s := VarToStr(CellValue);
+
+  // пробуємо конвертувати стандартним способом
+  if TryStrToDate(s, CorrectedDate) then
+  begin
+    CorrectDate := CorrectedDate;
+    Result := True;
+    Exit;
+  end;
+
+  // спроба розбити dd.mm.yyyy (або dd/mm/yyyy)
+  if Length(s) >= 8 then
+  begin
+    d := StrToIntDef(Copy(s, 1, 2), 0);
+    m := StrToIntDef(Copy(s, 4, 2), 0);
+
+    // беремо всі символи після 6-го, щоб зловити зайві цифри
+    YearStr := Copy(s, 7, MaxInt);
+    if not TryStrToInt(YearStr, y) then
+      y := 0;
+
+    // перевірка логічності року
+    if (y < 1900) or (y > 2100) then
+    begin
+      input := InputBox('Некоректний рік',
+        'Введіть правильний рік замість "' + YearStr + '" (1900-2100):', '2025');
+      if not TryStrToInt(input, y) then
+        y := 0;
+    end;
+
+    // перевірка TryEncodeDate
+    if TryEncodeDate(y, m, d, CorrectedDate) then
+    begin
+      CorrectDate := CorrectedDate;
+      Result := True;
+    end
+    else
+    begin
+      input := InputBox('Некоректна дата',
+        'Введіть правильну дату замість "' + s + '" (формат dd.mm.yyyy):', '01.01.2025');
+      if TryStrToDate(input, CorrectedDate) then
+      begin
+        CorrectDate := CorrectedDate;
+        Result := True;
+      end
+      else
+        ShowMessage('Дата все ще некоректна, запис буде пропущено.');
+    end;
+  end
+  else
+    ShowMessage('Дата занадто коротка або некоректна: ' + s);
+end;
+
+
+// перевірка дат чи в одному періоді
+function CorrectDateMonth(D: TDateTime; RefMonth, RefYear: Word): TDateTime;
+var
+  YearNum, MonthNum, DayNum: Word;
+  OldDateStr, NewDateStr: string;
+begin
+  DecodeDate(D, YearNum, MonthNum, DayNum);
+
+  // Якщо рік/місяць не співпадає з еталонним — коригуємо
+  if (MonthNum <> RefMonth) or (YearNum <> RefYear) then
+  begin
+    OldDateStr := FormatDateTime('dd.mm.yyyy', D);
+    D := EncodeDate(RefYear, RefMonth, DayNum);
+    NewDateStr := FormatDateTime('dd.mm.yyyy', D);
+    ShowMessage(Format('Дата %s змінюється на %s', [OldDateStr, NewDateStr]));
+  end;
+
+  Result := D;
+end;
+
+
+
 
 end.

@@ -210,6 +210,7 @@ inherited frmSLG: TfrmSLG
         TabOrder = 1
         OnDragDrop = StringGridDragDrop
         OnDragOver = StringGridDragOver
+        OnDrawCell = StringGridDrawCell
         OnMouseDown = StringGridMouseDown
         Alignment = taLeftJustify
         FixedFont.Charset = DEFAULT_CHARSET

@@ -157,6 +157,22 @@ inherited frmFrameDavayPodkl: TfrmFrameDavayPodkl
     DesignSize = (
       975
       41)
+    object sWebLabel1: TsWebLabel
+      Left = 16
+      Top = 16
+      Width = 3
+      Height = 13
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      HoverFont.Charset = DEFAULT_CHARSET
+      HoverFont.Color = clWindowText
+      HoverFont.Height = -11
+      HoverFont.Name = 'Tahoma'
+      HoverFont.Style = []
+    end
     object btnCreateExcel: TsBitBtn
       Left = 736
       Top = 8
